@@ -8,7 +8,7 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 
 - [x] 1. Talk to an LLM — prompt in, response out, no tools, no loop
 - [x] 2. Read tool — model requests a file, you execute and return it
-- [ ] 3. Write tool — same, for writing files
+- [x] 3. Write tool — same, for writing files
 - [ ] 4. Bash tool — same, for shell commands
 - [ ] 5. Agent loop — keep looping until the model stops requesting tools
 - [ ] 6. Extract tools module — dispatch table instead of `if/elif` soup

@@ -1,10 +1,8 @@
 """
-Stage 2: the Read tool
+Stage 3: the Write tool
 
-The model can't touch your filesystem on its own — it can only ask. This
-stage adds one tool, Read, and a single round trip: send the prompt and
-the tool's spec, check if the model asked to call it, execute it if so,
-print the result (no loop yet, that's the next stage).
+Same pattern as Read: advertise the spec, dispatch by name when the model
+calls it. Still one round trip, still no loop — just a second tool.
 """
 
 import argparse
@@ -35,13 +33,40 @@ TOOLS = [
                 },
             },
         },
-    }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "Write",
+            "description": "Write content to a file, creating it if needed or overwriting it if it exists",
+            "parameters": {
+                "type": "object",
+                "required": ["file_path", "content"],
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path of the file to write to",
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The content to write to the file",
+                    },
+                },
+            },
+        },
+    },
 ]
 
 
 def Read(file_path):
     with open(file_path) as f:
         return f.read()
+
+
+def Write(file_path, content):
+    with open(file_path, "w") as f:
+        f.write(content)
+    return f"Wrote to {file_path}"
 
 
 def main():
@@ -71,11 +96,16 @@ def main():
         call = message.tool_calls[0]
         print(f"[main] model requested tool call: {call.function.name}", file=sys.stderr)
 
-        if call.function.name != "Read":
+        arguments = json.loads(call.function.arguments)
+
+        if call.function.name == "Read":
+            result = Read(arguments["file_path"])
+        elif call.function.name == "Write":
+            result = Write(arguments["file_path"], arguments["content"])
+        else:
             raise RuntimeError(f"unknown tool: {call.function.name}")
 
-        arguments = json.loads(call.function.arguments)
-        print(Read(arguments["file_path"]))
+        print(result)
         return
 
     print(message.content)
