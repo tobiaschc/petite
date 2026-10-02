@@ -32,3 +32,7 @@ Free models: https://openrouter.ai/models?q=free&output_modalities=text (slugs c
 ## Why
 
 Most "build your own agent" content either hides the hard parts behind a framework, or dumps a finished repo on you. Here every commit is small enough to read in two minutes.
+
+## References
+
+- [Claude Code tools reference](https://code.claude.com/docs/en/tools-reference) — the real tool set (`Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`...) this project is inspired by, scaled down to teachable size.
