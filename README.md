@@ -11,7 +11,7 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 3. Write tool — same, for writing files
 - [x] 4. Agent loop — keep looping until the model stops requesting tools
 - [x] 5. Bash tool — same, for shell commands
-- [ ] 6. Extract tools module — dispatch table instead of `if/elif` soup
+- [x] 6. Extract tools module — dispatch table instead of `if/elif` soup
 - [ ] 7. Skills (level 1) — advertise `.claude/skills/*/SKILL.md` name + description
 - [ ] 8. Slash commands (level 2) — load a skill's full body on demand
 - [ ] 9. Tool/Skill classes — class hierarchy once duplication justifies it
