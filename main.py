@@ -1,8 +1,15 @@
 """
-Stage 3: the Write tool
+Stage 4: the agent loop
 
-Same pattern as Read: advertise the spec, dispatch by name when the model
-calls it. Still one round trip, still no loop — just a second tool.
+Up to now every run was one round trip: ask, maybe run one tool, exit.
+That breaks for multi-step tasks ("read a file and fix any bugs") because
+the model never gets to see a tool's result and react to it.
+
+The fix: keep `messages` around across turns, keep calling the API, and
+only stop when the model answers with plain text (no more tool_calls).
+Each tool call's result is appended as its own `role: "tool"` message,
+tagged with that call's `tool_call_id` so the model knows which result
+answers which request.
 """
 
 import argparse
@@ -15,6 +22,7 @@ from openai import OpenAI
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 MODEL = os.getenv("MODEL", "anthropic/claude-haiku-4.5")
+MAX_TURNS = 20
 
 TOOLS = [
     {
@@ -69,6 +77,14 @@ def Write(file_path, content):
     return f"Wrote to {file_path}"
 
 
+def execute_tool(name, arguments):
+    if name == "Read":
+        return Read(arguments["file_path"])
+    if name == "Write":
+        return Write(arguments["file_path"], arguments["content"])
+    raise RuntimeError(f"unknown tool: {name}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="petite-harness: a tiny AI coding assistant")
     parser.add_argument("-p", "--prompt", required=True, help="the task to ask the model")
@@ -79,36 +95,46 @@ def main():
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-    print(f"[main] sending prompt to {MODEL}", file=sys.stderr)
+    messages = [{"role": "user", "content": args.prompt}]
 
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "user", "content": args.prompt}],
-        tools=TOOLS,
-    )
+    for turn in range(1, MAX_TURNS + 1):
+        print(f"[agent] turn {turn}: calling model with {len(messages)} message(s)", file=sys.stderr)
 
-    if not response.choices:
-        raise RuntimeError("no choices in response")
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            tools=TOOLS,
+        )
 
-    message = response.choices[0].message
+        if not response.choices:
+            raise RuntimeError("no choices in response")
 
-    if message.tool_calls:
-        call = message.tool_calls[0]
-        print(f"[main] model requested tool call: {call.function.name}", file=sys.stderr)
+        message = response.choices[0].message
+        messages.append(message.model_dump())
 
-        arguments = json.loads(call.function.arguments)
+        tool_calls = message.tool_calls
 
-        if call.function.name == "Read":
-            result = Read(arguments["file_path"])
-        elif call.function.name == "Write":
-            result = Write(arguments["file_path"], arguments["content"])
-        else:
-            raise RuntimeError(f"unknown tool: {call.function.name}")
+        if not tool_calls:
+            print(message.content)
+            return
 
-        print(result)
-        return
+        print(f"[agent] turn {turn}: {len(tool_calls)} tool call(s) requested", file=sys.stderr)
 
-    print(message.content)
+        for call in tool_calls:
+            arguments = json.loads(call.function.arguments)
+            print(f"[agent] executing {call.function.name}({arguments})", file=sys.stderr)
+
+            result = execute_tool(call.function.name, arguments)
+
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "content": result,
+                }
+            )
+
+    raise RuntimeError(f"exceeded {MAX_TURNS} turns without a final answer")
 
 
 if __name__ == "__main__":

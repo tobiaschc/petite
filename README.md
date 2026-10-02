@@ -9,8 +9,8 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 1. Talk to an LLM — prompt in, response out, no tools, no loop
 - [x] 2. Read tool — model requests a file, you execute and return it
 - [x] 3. Write tool — same, for writing files
-- [ ] 4. Bash tool — same, for shell commands
-- [ ] 5. Agent loop — keep looping until the model stops requesting tools
+- [x] 4. Agent loop — keep looping until the model stops requesting tools
+- [ ] 5. Bash tool — same, for shell commands
 - [ ] 6. Extract tools module — dispatch table instead of `if/elif` soup
 - [ ] 7. Skills (level 1) — advertise `.claude/skills/*/SKILL.md` name + description
 - [ ] 8. Slash commands (level 2) — load a skill's full body on demand
