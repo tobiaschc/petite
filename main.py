@@ -1,20 +1,15 @@
 """
-Stage 4: the agent loop
+Stage 5: the Bash tool
 
-Up to now every run was one round trip: ask, maybe run one tool, exit.
-That breaks for multi-step tasks ("read a file and fix any bugs") because
-the model never gets to see a tool's result and react to it.
-
-The fix: keep `messages` around across turns, keep calling the API, and
-only stop when the model answers with plain text (no more tool_calls).
-Each tool call's result is appended as its own `role: "tool"` message,
-tagged with that call's `tool_call_id` so the model knows which result
-answers which request.
+Shell access: subprocess.run captures stdout and stderr, and the combined
+output goes back to the model as the tool's result (empty on a silent
+success, like `rm file` with no output).
 """
 
 import argparse
 import json
 import os
+import subprocess
 import sys
 
 from openai import OpenAI
@@ -63,6 +58,23 @@ TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "Bash",
+            "description": "Execute a shell command",
+            "parameters": {
+                "type": "object",
+                "required": ["command"],
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "The command to execute",
+                    }
+                },
+            },
+        },
+    },
 ]
 
 
@@ -77,11 +89,21 @@ def Write(file_path, content):
     return f"Wrote to {file_path}"
 
 
+def Bash(command):
+    completed = subprocess.run(command, shell=True, capture_output=True, text=True)
+    output = completed.stdout + completed.stderr
+    if completed.returncode != 0:
+        output += f"\n(exit code {completed.returncode})"
+    return output
+
+
 def execute_tool(name, arguments):
     if name == "Read":
         return Read(arguments["file_path"])
     if name == "Write":
         return Write(arguments["file_path"], arguments["content"])
+    if name == "Bash":
+        return Bash(arguments["command"])
     raise RuntimeError(f"unknown tool: {name}")
 
 
