@@ -5,4 +5,5 @@ description = "A tiny, from-scratch AI coding agent built one concept at a time:
 requires-python = ">=3.11"
 dependencies = [
     "openai>=1.0.0",
+    "pydantic>=2.13.5",
 ]

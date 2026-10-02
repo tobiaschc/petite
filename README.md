@@ -12,10 +12,11 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 4. Agent loop — keep looping until the model stops requesting tools
 - [x] 5. Bash tool — same, for shell commands
 - [x] 6. Extract tools module — dispatch table instead of `if/elif` soup
-- [ ] 7. Skills (level 1) — advertise `.claude/skills/*/SKILL.md` name + description
-- [ ] 8. Slash commands (level 2) — load a skill's full body on demand
-- [ ] 9. Tool/Skill classes — class hierarchy once duplication justifies it
-- [ ] 10. Tests — fake LLM client, no real API calls
+- [x] 7. Tool classes with Pydantic — schema + validation from one model per tool
+- [ ] 8. Skills (level 1) — advertise `.claude/skills/*/SKILL.md` name + description
+- [ ] 9. Slash commands (level 2) — load a skill's full body on demand
+- [ ] 10. Skill classes — same idea as stage 7, applied to skills
+- [ ] 11. Tests — fake LLM client, no real API calls
 
 ## Running it
 
