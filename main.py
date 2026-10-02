@@ -1,15 +1,14 @@
 """
-Stage 1: Talk to an LLM
+Stage 2: the Read tool
 
-The smallest possible version of an AI coding assistant: take a prompt
-from the command line, send it to an LLM, print the response.
-
-No tools yet. No loop. Just a single request/response round trip, using
-the OpenAI SDK pointed at OpenRouter (any OpenAI-compatible API works the
-same way).
+The model can't touch your filesystem on its own — it can only ask. This
+stage adds one tool, Read, and a single round trip: send the prompt and
+the tool's spec, check if the model asked to call it, execute it if so,
+print the result (no loop yet, that's the next stage).
 """
 
 import argparse
+import json
 import os
 import sys
 
@@ -18,6 +17,31 @@ from openai import OpenAI
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 MODEL = os.getenv("MODEL", "anthropic/claude-haiku-4.5")
+
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "Read",
+            "description": "Read and return the contents of a file",
+            "parameters": {
+                "type": "object",
+                "required": ["file_path"],
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the file to read",
+                    }
+                },
+            },
+        },
+    }
+]
+
+
+def Read(file_path):
+    with open(file_path) as f:
+        return f.read()
 
 
 def main():
@@ -35,12 +59,26 @@ def main():
     response = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": args.prompt}],
+        tools=TOOLS,
     )
 
     if not response.choices:
         raise RuntimeError("no choices in response")
 
-    print(response.choices[0].message.content)
+    message = response.choices[0].message
+
+    if message.tool_calls:
+        call = message.tool_calls[0]
+        print(f"[main] model requested tool call: {call.function.name}", file=sys.stderr)
+
+        if call.function.name != "Read":
+            raise RuntimeError(f"unknown tool: {call.function.name}")
+
+        arguments = json.loads(call.function.arguments)
+        print(Read(arguments["file_path"]))
+        return
+
+    print(message.content)
 
 
 if __name__ == "__main__":
