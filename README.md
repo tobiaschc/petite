@@ -18,7 +18,7 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 6. Extract tools module — dispatch table instead of `if/elif` soup
 - [x] 7. Tool classes with Pydantic — schema + validation from one model per tool
 - [x] 8. Skills (level 1) — `.petite/skills/*/SKILL.md`, validated with Pydantic, advertised as name + description
-- [ ] 9. Slash commands (level 2) — load a skill's full body on demand
+- [x] 9. Slash commands (level 2) — load a skill's full body on demand
 - [ ] 10. Skill classes — same idea as stage 7, applied to skills
 - [ ] 11. Tests — fake LLM client, no real API calls
 

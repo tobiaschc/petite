@@ -1,19 +1,12 @@
 """
-Stage 8: skills, level 1 (advertise)
+Stage 9: slash commands, level 2 (invoke)
 
-A "skill" is a folder of instructions an agent loads on demand instead of
-always keeping in context — the Agent Skills open standard:
-https://agentskills.io/specification
-
-Skills live under .petite/skills/<name>/SKILL.md (petite-harness's own
-folder, not Claude Code's .claude/skills/ — the SKILL.md *format* is the
-generic open standard, the directory convention is implementation-specific
-and this project uses its own).
-
-Progressive disclosure has three levels; this stage implements level 1
-only: scan every skill folder, parse just the YAML frontmatter (name +
-description), and put that list in a system prompt so the model knows
-what exists — without ever loading a SKILL.md body into context.
+A prompt starting with "/" invokes a skill by name: the first word after
+the slash resolves to .petite/skills/<name>/SKILL.md, and that skill's
+body (everything after the closing "---") replaces the raw prompt as the
+user message. Only the invoked skill's body is ever loaded — every other
+skill stays at level 1 (name + description in the system prompt), so the
+model never sees two conflicting sets of instructions at once.
 """
 
 import os
@@ -107,3 +100,37 @@ def build_skills_system_prompt(skills):
         lines.append(f"- {skill.name}: {skill.description}")
 
     return "\n".join(lines)
+
+
+def load_skill_body(name, skills_dir=SKILLS_DIR):
+    """Level 2: resolve a skill by folder name and return its SKILL.md body.
+
+    Returns None if the skill doesn't exist. Only this skill's body is
+    ever read — the other skills stay at level 1 (name + description).
+    """
+    skill_md_path = os.path.join(skills_dir, name, "SKILL.md")
+    if not os.path.isfile(skill_md_path):
+        return None
+
+    with open(skill_md_path) as f:
+        _frontmatter, body = _split_frontmatter(f.read())
+
+    return body.strip()
+
+
+def resolve_slash_command(prompt, skills_dir=SKILLS_DIR):
+    """If prompt starts with '/', resolve the first word as a skill name
+    and return that skill's body to use as the user message content.
+
+    Returns None if the prompt isn't a slash command or the named skill
+    can't be found, so the caller falls back to the raw prompt.
+    """
+    if not prompt.startswith("/"):
+        return None
+
+    rest = prompt[1:].strip()
+    if not rest:
+        return None
+
+    skill_name = rest.split()[0]
+    return load_skill_body(skill_name, skills_dir)

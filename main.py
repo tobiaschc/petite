@@ -1,8 +1,8 @@
 """
-Stage 8: skills, level 1 (advertise)
+Stage 9: slash commands, level 2 (invoke)
 
-main.py now prepends a system message listing available skills (name +
-description only) before the loop starts — see skills.py for the why.
+A "/name" prompt loads that skill's SKILL.md body instead of the raw
+prompt — see skills.py for how resolution and progressive disclosure work.
 """
 
 import argparse
@@ -12,7 +12,7 @@ import sys
 
 from openai import OpenAI
 
-from skills import build_skills_system_prompt, discover_skills
+from skills import build_skills_system_prompt, discover_skills, resolve_slash_command
 from tools import TOOLS, execute_tool
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -32,6 +32,11 @@ def main():
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
     messages = [{"role": "user", "content": args.prompt}]
+
+    skill_body = resolve_slash_command(args.prompt)
+    if skill_body is not None:
+        print(f"[agent] resolved slash command to skill body ({len(skill_body)} chars)", file=sys.stderr)
+        messages[0]["content"] = skill_body
 
     skills = discover_skills()
     system_prompt = build_skills_system_prompt(skills)
