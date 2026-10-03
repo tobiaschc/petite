@@ -23,8 +23,9 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 11. Stack multiple skills — `/rabbit /fox 4127` expands both, sharing trailing args
 - [x] 12. Bundled scripts (level 3) — `scripts/` loaded only when the body points at them, via a folder-path header
 - [x] 13. Model-invoked skills — the `Skill` tool, plus `disable-model-invocation` / `user-invocable` controls
-- [ ] 14. Skill classes — same idea as stage 7, applied to skills
-- [ ] 15. Tests — fake LLM client, no real API calls
+- [x] 14. Subagents — `context: fork` runs a skill in its own isolated conversation
+- [ ] 15. Skill classes — same idea as stage 7, applied to skills
+- [ ] 16. Tests — fake LLM client, no real API calls
 
 ## Running it
 
@@ -51,3 +52,4 @@ Most "build your own agent" content either hides the hard parts behind a framewo
 - [Agent Skills: optional directories](https://agentskills.io/specification#optional-directories) — the `scripts/` / `references/` / `assets/` convention for level-3 disclosure.
 - [Agent Skills: file references](https://agentskills.io/specification#file-references) — relative-path convention for files a skill body points at.
 - [Claude Code: control who invokes a skill](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill) — the `disable-model-invocation` / `user-invocable` frontmatter fields this stage implements.
+- [Claude Code: run skills in a subagent](https://code.claude.com/docs/en/skills#run-skills-in-a-subagent) — the `context: fork` field this stage implements.

@@ -11,7 +11,8 @@ import subprocess
 
 from pydantic import BaseModel, Field, ValidationError
 
-from skills import resolve_skill_invocation
+from agent import run_agent_loop
+from skills import get_skill_meta, resolve_skill_invocation
 
 
 class ReadArgs(BaseModel):
@@ -103,19 +104,39 @@ class SkillTool(Tool):
 
     def execute(self, name, args=""):
         try:
-            result = resolve_skill_invocation(name, args)
+            body = resolve_skill_invocation(name, args)
         except ValueError as e:
             return str(e)
-        if result is None:
+        if body is None:
             return f"Unknown skill: {name}"
-        return result
+
+        meta = get_skill_meta(name)
+        if meta is not None and meta.context == "fork":
+            # Run in a subagent: a brand new conversation that only ever
+            # sees this body, not the question that triggered it. Only
+            # its final answer crosses back into the main conversation.
+            subagent_messages = [{"role": "user", "content": body}]
+            answer = run_agent_loop(
+                subagent_messages, SUBAGENT_TOOLS, execute_tool, label=f"subagent:{name}"
+            )
+            return f"Skill {name} ran in a separate context and returned: {answer}"
+
+        return body
 
 
-ALL_TOOLS = [ReadTool(), WriteTool(), BashTool(), SkillTool()]
+ALL_TOOLS = [ReadTool(), WriteTool(), BashTool()]
+SKILL_TOOL = SkillTool()
 
-TOOLS = [tool.spec() for tool in ALL_TOOLS]
+# Subagents get Read/Write/Bash but never the Skill tool itself — without
+# this, a forked skill's folder header ("Skill: owl (located at ...)")
+# reads to a model as an instruction to call Skill again, recursing
+# forever instead of just following the body it was already given.
+SUBAGENT_TOOLS = [tool.spec() for tool in ALL_TOOLS]
 
-TOOLS_BY_NAME = {tool.name: tool for tool in ALL_TOOLS}
+MAIN_TOOLS = ALL_TOOLS + [SKILL_TOOL]
+TOOLS = [tool.spec() for tool in MAIN_TOOLS]
+
+TOOLS_BY_NAME = {tool.name: tool for tool in MAIN_TOOLS}
 
 
 def execute_tool(name, arguments):

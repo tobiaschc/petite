@@ -46,6 +46,7 @@ class SkillMeta(BaseModel):
         default=False, alias="disable-model-invocation"
     )
     user_invocable: bool = Field(default=True, alias="user-invocable")
+    context: str | None = None
 
     @field_validator("name")
     @classmethod
@@ -185,6 +186,11 @@ def resolve_slash_command(prompt, skills_dir=SKILLS_DIR):
             break
         expanded_names.append(candidate)
         i += 1
+        if meta.context == "fork":
+            # A forked skill runs in its own subagent, isolated from the
+            # main conversation — it can't be combined with another
+            # skill's body the way two normal invocations can.
+            break
 
     if not expanded_names:
         return None
@@ -236,6 +242,11 @@ def resolve_skill_invocation(name, args_text="", skills_dir=SKILLS_DIR):
     body = load_skill_body(name, skills_dir)
     args = args_text.split() if args_text else []
     return _with_folder_header(name, substitute_arguments(body, args), skills_dir)
+
+
+def get_skill_meta(name, skills_dir=SKILLS_DIR):
+    """Public lookup of one skill's validated frontmatter, or None."""
+    return _load_skill_meta(name, skills_dir, warn=False)
 
 
 def substitute_arguments(body, args):
