@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4. Agent loop — petite</title>
+<meta name="description" content="A single round trip can't do 'read a file and fix a bug in it' — that needs the model to see a tool's result and decide what to do next. The loop is w">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="03-write-tool.html">← <span class="s">Stage </span>3<span class="t">. Write tool</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="05-bash-tool.html"><span class="s">Stage </span>5<span class="t">. Bash tool</span> →</a>
+  </nav>
+  <p class="stage-kicker">Base agent</p>
+  <h1 class="page-title">4. Agent loop</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-04-agent-loop">View this stage's code on GitHub →</a>
+
+  <p>A single round trip can't do "read a file and fix a bug in it" — that needs the model to see a tool's result and decide what to do next. The loop is what makes that possible: keep a running <code>messages</code> list, append the assistant's reply (including any tool calls) and one <code>role: tool</code> message per call executed, then call the API again with the growing conversation. It stops when the model answers without requesting a tool, or after <code>MAX_TURNS</code> as a guard against a runaway loop that never converges.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 4, "llm": [{"id": "M", "label": "model writes the next message"}], "local": [{"id": "U", "label": "your prompt", "col": 0, "row": 0}, {"id": "Msgs", "label": "messages list", "col": 1, "row": 0}, {"id": "Chk", "label": "tool calls?", "col": 2, "row": 0, "shape": "decision"}, {"id": "Done", "label": "print the answer", "col": 3, "row": 0}, {"id": "Run", "label": "run the tool here", "col": 1.5, "row": 1}], "edges": [["U", "Msgs"], ["Msgs", "M", "request: messages + tool schemas"], ["M", "Chk", "response: text or a tool call"], ["Chk", "Run", "yes"], ["Run", "Msgs", "append result"], ["Chk", "Done", "no"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "U-Msgs", "carry": "How many carrots…?"},
+      {"edge": "Msgs-M", "carry": "messages + tool schemas"},
+      {"edge": "M-Chk", "carry": "tool call: Read(rabbit.py)"},
+      {"edge": "Chk-Run", "carry": "Read(rabbit.py)"},
+      {"edge": "Run-Msgs", "carry": "carrots_per_day = 6"},
+      {"edge": "Msgs-M", "carry": "+ the tool result"},
+      {"edge": "M-Chk", "carry": "text: 6"},
+      {"edge": "Chk-Done", "carry": "6"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Keep a <code>messages</code> list across turns instead of a single round trip.</li>
+    <li>Each turn: append the assistant's reply (its <code>tool_calls</code> included) to <code>messages</code>, then append one <code>role: tool</code> message per call executed, tagged with its <code>tool_call_id</code>.</li>
+    <li>Repeat until the model replies with no tool calls; print that final answer. Add a <code>MAX_TURNS</code> guard so a model that never stops calling tools can't loop forever.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 4
+cd .stages/04
+echo "carrots_per_day = 6  # the rabbit's diet" > rabbit.py
+just run "How many carrots does the rabbit eat per day, according to rabbit.py? Respond with only a number."</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> 6 — this needs two turns (Read, then answer), proving the loop actually loops</p>
+  <p>
+    <code>.stages/04</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 3 4</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-04-agent-loop">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+
+  <div class="stage-nav">
+    <a href="03-write-tool.html">← 3. Write tool</a>
+    <span class="spacer"></span>
+    <a href="05-bash-tool.html">5. Bash tool →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

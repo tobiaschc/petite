@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. Talk to an LLM — petite</title>
+<meta name="description" content="The smallest possible agent isn't an agent at all: one prompt in, one response out, no memory, no tools. Before adding any of that, there has to be so">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <span></span>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="02-read-tool.html"><span class="s">Stage </span>2<span class="t">. Read tool</span> →</a>
+  </nav>
+  <p class="stage-kicker">Base agent</p>
+  <h1 class="page-title">1. Talk to an LLM</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-01-talk-to-llm">View this stage's code on GitHub →</a>
+
+  <p>The smallest possible agent isn't an agent at all: one prompt in, one response out, no memory, no tools. Before adding any of that, there has to be something that talks to an LLM API at all. Everything else in this project is this call, wrapped in more structure.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 2, "llm": [{"id": "M", "label": "model writes a reply"}], "local": [{"id": "U", "label": "your prompt", "col": 0, "row": 0}, {"id": "P", "label": "print the answer", "col": 1, "row": 0}], "edges": [["U", "M", "request: one message"], ["M", "P", "response: text"]]}
+  </script>
+  <p class="lanes-note">Only the bold arrows leave your machine, over the internet (HTTPS). The model never reads your files or runs anything: it can only <em>ask</em>, and petite does the work locally.</p>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "U-M", "carry": "Please compute 2 + 3…"},
+      {"edge": "M-P", "carry": "5"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Send a single prompt to an OpenAI-compatible chat completions endpoint.</li>
+    <li>Print the response content. No tools, no loop — one request in, one answer out.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code (after <code>just setup</code>), from the repo root:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 1
+cd .stages/01
+just run "Please compute 2 + 3. Respond with only a number."</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> 5</p>
+  <p>
+    <code>.stages/01</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Or <a href="https://github.com/tobiaschc/petite/tree/stage-01-talk-to-llm">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://openrouter.ai/docs/quickstart#using-the-openrouter-api">OpenRouter quickstart</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="02-read-tool.html">2. Read tool →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

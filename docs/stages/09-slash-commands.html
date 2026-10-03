@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>9. Slash commands (level 2) — petite</title>
+<meta name="description" content="Level 1 tells the model a skill exists; level 2 is the first way to actually load one. When a prompt starts with <code>/name</code>, that's resolved d">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="08-skills-level1.html">← <span class="s">Stage </span>8<span class="t">. Skills (level 1)</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="10-skill-arguments.html"><span class="s">Stage </span>10<span class="t">. Skill arguments</span> →</a>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">9. Slash commands (level 2)</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-09-slash-commands">View this stage's code on GitHub →</a>
+
+  <p>Level 1 tells the model a skill exists; level 2 is the first way to actually load one. When a prompt starts with <code>/name</code>, that's resolved directly to a folder and its <code>SKILL.md</code> body replaces the raw prompt as the user message — no model judgment involved, the user named the skill explicitly. Every other skill stays at level 1, which matters: if two full bodies land in context at once with conflicting instructions, the model has no way to know which one to follow.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 4, "llm": [{"id": "M", "label": "model follows the body"}], "local": [{"id": "P", "label": "/otter", "col": 0, "row": 0}, {"id": "Res", "label": "resolve_slash_command", "col": 1, "row": 0}, {"id": "Body", "label": "SKILL.md body", "col": 2, "row": 0}, {"id": "Out", "label": "print the answer", "col": 3, "row": 0}], "edges": [["P", "Res"], ["Res", "Body"], ["Body", "M", "request: the body as your message"], ["M", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "P-Res", "carry": "/otter"},
+      {"edge": "Res-Body", "carry": "otter/SKILL.md"},
+      {"edge": "Body-M", "carry": "Respond…: river"},
+      {"edge": "M-Out", "carry": "river"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>When a prompt starts with <code>/name</code>, resolve <code>name</code> to a skill folder, read its body (everything after the closing <code>---</code>), and send <em>that</em> as the user message instead of the raw prompt.</li>
+    <li>Every other discovered skill stays at level 1 (name + description only) — don't load any other body.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 9
+cd .stages/09
+mkdir -p .petite/skills/otter && cat &gt; .petite/skills/otter/SKILL.md &lt;&lt;EOF
+---
+name: otter
+description: Reports where the project's otter lives.
+---
+Respond with exactly one word: river
+EOF
+just run "/otter"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> river — exactly what the skill's body told the model to say, since the model only sees that body as its instruction</p>
+  <p>
+    <code>.stages/09</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 8 9</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-09-slash-commands">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://agentskills.io/specification">Agent Skills specification</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="08-skills-level1.html">← 8. Skills (level 1)</a>
+    <span class="spacer"></span>
+    <a href="10-skill-arguments.html">10. Skill arguments →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

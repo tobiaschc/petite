@@ -3,198 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>petite — build your own AI coding agent, one commit at a time</title>
+<title>petite</title>
 <meta name="description" content="A tiny AI coding agent built from scratch, one commit per concept. Follow along stage by stage, or clone it and replicate it yourself: LLM calls, tool calling, the agent loop, skills.">
-<style>
-  :root {
-    --bg: #FBF8F1;
-    --ink: #1a1a1a;
-    --muted: #5b5b55;
-    --accent: #5b7fd4;
-    --accent-soft: #95BAFF;
-    --rule: #e4ddc8;
-    --code-bg: #f1ecdd;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    line-height: 1.65;
-  }
-
-  .banner {
-    width: 100%;
-    display: block;
-  }
-
-  main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 24px 96px;
-  }
-
-  h1, h2, h3 {
-    font-family: Georgia, "Times New Roman", serif;
-    font-weight: normal;
-    line-height: 1.25;
-  }
-
-  h1 {
-    font-size: 2.6rem;
-    margin: 2.5rem 0 0.5rem;
-  }
-
-  h1.walkthrough-title {
-    font-size: 2.1rem;
-    margin-top: 4rem;
-  }
-
-  .tagline {
-    color: var(--muted);
-    font-size: 1.05rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .tagline a { color: var(--accent); }
-
-  h2 {
-    font-size: 1.5rem;
-    margin-top: 3.5rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 2px solid var(--accent-soft);
-  }
-
-  h3 {
-    font-size: 1.2rem;
-    margin-top: 2.2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  h3 a {
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid var(--accent-soft);
-  }
-
-  h3 a:hover { border-bottom-color: var(--accent); }
-
-  p {
-    margin: 0.9rem 0;
-    color: #2b2b28;
-  }
-
-  code {
-    background: var(--code-bg);
-    padding: 0.12em 0.4em;
-    border-radius: 4px;
-    font-size: 0.9em;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  }
-
-  a { color: var(--accent); }
-
-  .stage-link {
-    display: inline-block;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
-    margin-top: -0.3rem;
-    margin-bottom: 0.8rem;
-  }
-
-  .stage-link a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  .stage-link a:hover { text-decoration: underline; }
-
-  footer {
-    margin-top: 4rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--rule);
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  footer a { color: var(--accent); }
-
-  .cta-row {
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-    margin: 1.5rem 0 1rem;
-  }
-
-  .cta-row a {
-    display: inline-block;
-    padding: 0.55rem 1.1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 0.95rem;
-  }
-
-  .cta-row a.primary {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
-  .cta-row a.secondary {
-    border: 1px solid var(--rule);
-    color: var(--ink);
-  }
-
-  .intro-section {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 1rem;
-  }
-
-  .replicate-steps {
-    background: var(--code-bg);
-    border-radius: 8px;
-    padding: 1.2rem 1.4rem;
-    margin: 1.2rem 0;
-  }
-
-  .replicate-steps pre {
-    margin: 0.6rem 0;
-    overflow-x: auto;
-    font-size: 0.85rem;
-  }
-
-  .replicate-steps pre code {
-    background: none;
-    padding: 0;
-  }
-
-  .mermaid {
-    margin: 1.2rem 0;
-    display: flex;
-    justify-content: center;
-  }
-</style>
-<script type="module">
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: "base",
-    themeVariables: {
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-      primaryColor: "#f1ecdd",
-      primaryBorderColor: "#95BAFF",
-      primaryTextColor: "#1a1a1a",
-      lineColor: "#5b7fd4",
-      secondaryColor: "#FBF8F1",
-      tertiaryColor: "#FBF8F1",
-    },
-  });
-</script>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/mark.png" type="image/png">
 </head>
 <body>
 
@@ -205,43 +18,28 @@
   <p class="tagline">
     A tiny AI coding agent, built from scratch, one commit per concept.
     Each stage below is a real, working commit: LLM calls, tool calling, the agent loop, skills —
-    read the diffs, run the code, or use it as a map to build your own.
+    read it, run it, or replicate it yourself.
   </p>
 
   <div class="intro-section">
     <div class="cta-row">
       <a class="primary" href="https://github.com/tobiaschc/petite">View on GitHub</a>
-      <a class="secondary" href="#walkthrough">Read the walkthrough ↓</a>
+      <a class="secondary" href="stages/01-talk-to-llm.html">Start at stage 1 →</a>
     </div>
   </div>
 
-  <h2>Replicate it yourself</h2>
-  <p>
-    Every stage is tagged, so you can clone the repo and check out any point in its history —
-    see exactly what the project looked like before and after each concept was added, then
-    keep going from there in your own fork.
-  </p>
+  <h2>Setup</h2>
   <div class="replicate-steps">
     <pre><code>git clone https://github.com/tobiaschc/petite
 cd petite
-
-# jump to any stage's exact snapshot
-git checkout stage-08-skills-level1
-
-# or diff two stages directly
-git diff stage-08-skills-level1 stage-09-slash-commands</code></pre>
+just setup</code></pre>
   </div>
   <p>
-    Each stage link below (and in the checklist on GitHub) points straight to that tag's code.
-    Picking any one concept, reading its diff, and reimplementing it from scratch is the
-    fastest way to actually understand it — that's the whole point of this project.
+    Needs <a href="https://docs.astral.sh/uv/">uv</a> and <a href="https://github.com/casey/just">just</a>.
+    <code>just setup</code> creates <code>.env</code> — fill in your <code>OPENROUTER_API_KEY</code> there, then:
   </p>
-
-  <h2>Running it</h2>
   <div class="replicate-steps">
-    <pre><code>uv sync
-export OPENROUTER_API_KEY=sk-or-v1-...
-uv run main.py -p "What does this project do?"</code></pre>
+    <pre><code>just run "What does this project do?"</code></pre>
   </div>
   <p>
     Any OpenAI-compatible endpoint works — override <code>OPENROUTER_BASE_URL</code> / <code>MODEL</code>.
@@ -249,153 +47,56 @@ uv run main.py -p "What does this project do?"</code></pre>
     (slugs change — a 404 means pick a new one).
   </p>
 
-  <h1 class="walkthrough-title" id="walkthrough">Walkthrough</h1>
-  <p class="tagline">
-    One paragraph per stage: the problem it solves and why the solution looks the way it does.
-    The code itself is the real documentation — each heading links to that stage's exact snapshot —
-    this page is the narration that goes with it.
+  <h2>Replicate it yourself</h2>
+  <p>
+    Every stage is a tagged commit. The <code>justfile</code> wraps the git commands so you don't
+    have to remember tag names, and your checkout never leaves <code>main</code>:
+  </p>
+  <div class="replicate-steps">
+    <pre><code># list every stage
+just list
+
+# a stage's exact code in .stages/08 (a git worktree)
+just stage 8
+cd .stages/08
+just run "..."      # runs stage 8's code, not main's
+
+# diff two stages directly
+just diff 8 9
+
+# done exploring
+just clean-stages</code></pre>
+  </div>
+  <p>
+    Each stage page below links to its code on GitHub too. Picking one concept, reading its
+    diff, and reimplementing it from scratch is the fastest way to actually understand it —
+    that's the whole point of this project.
   </p>
 
   <h2>Base agent</h2>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-01-talk-to-llm">1. Talk to an LLM</a></h3>
-  <p>The smallest possible agent isn't an agent at all: one prompt in, one response out, no memory, no tools. Before adding any of that, there has to be something that talks to an LLM API at all. Everything else in this project is this call, wrapped in more structure.</p>
-  <pre class="mermaid">
-flowchart LR
-  U[User prompt] --> M[LLM]
-  M --> R[Printed response]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-02-read-tool">2. Read tool</a></h3>
-  <p>An LLM can't touch a filesystem by default — it only produces text. A "tool" is just a JSON schema describing a function, sent alongside the prompt, that the model can ask to have called. This stage advertises exactly one: <code>Read</code>. Still a single round trip — the model asks, you call it, you print the result and exit. No loop yet, because the point here is purely "the model can ask for something it doesn't have."</p>
-  <pre class="mermaid">
-flowchart LR
-  U[User prompt] --> M[LLM]
-  M -->|requests Read| T[Read tool]
-  T --> F[(file)]
-  F --> Out[Printed result]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-03-write-tool">3. Write tool</a></h3>
-  <p>Same idea as Read, mirrored for writing: one more entry in the tools list, one more branch in the dispatcher. Adding a second tool before building the loop is deliberate — it proves the tool-calling mechanism generalizes before anything more complex sits on top of it.</p>
-  <pre class="mermaid">
-flowchart LR
-  M[LLM] -->|tool name| D{Dispatch}
-  D --> R[Read]
-  D --> W[Write]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-04-agent-loop">4. Agent loop</a></h3>
-  <p>A single round trip can't do "read a file and fix a bug in it" — that needs the model to see a tool's result and decide what to do next. The loop is what makes that possible: keep a running <code>messages</code> list, append the assistant's reply (including any tool calls) and one <code>role: tool</code> message per call executed, then call the API again with the growing conversation. It stops when the model answers without requesting a tool, or after <code>MAX_TURNS</code> as a guard against a runaway loop that never converges.</p>
-  <pre class="mermaid">
-flowchart TD
-  Msgs[messages] --> M[Call LLM]
-  M --> Chk{Tool calls?}
-  Chk -->|yes: run tools, append results| Msgs
-  Chk -->|no| Done[Print final answer]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-05-bash-tool">5. Bash tool</a></h3>
-  <p>Read and Write cover files; Bash covers everything else — <code>ls</code>, <code>rm</code>, running a test suite, whatever the model decides to try. It's the one tool that converts "the model composed a shell command" into "it actually happened," which is as much power as it is risk: <code>subprocess.run</code> with <code>shell=True</code> executes literally what the model wrote.</p>
-  <pre class="mermaid">
-flowchart LR
-  M[LLM] --> D{Dispatch}
-  D --> R[Read]
-  D --> W[Write]
-  D --> B[Bash]
-  B --> S[(shell command)]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-06-extract-tools">6. Extract tools module</a></h3>
-  <p>Three tools and <code>main.py</code> already has a growing <code>if/elif</code> chain mixing agent-loop logic with tool-dispatch logic. This stage is pure refactor, no new behavior: <code>tools.py</code> now owns the three tool functions, their JSON specs, and a <code>TOOL_FUNCTIONS</code> dict that <code>execute_tool</code> looks up by name. Every tool added from here on touches one file, not two.</p>
-  <pre class="mermaid">
-flowchart LR
-  Main[main.py] --> Tools[tools.py]
-  Tools --> Specs[TOOLS specs]
-  Tools --> Funcs[TOOL_FUNCTIONS dict]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-07-pydantic-tools">7. Tool classes with Pydantic</a></h3>
-  <p>Hand-written JSON Schema and <code>fn(**arguments)</code> can silently drift apart — nothing forces the schema a model sees to match what the function actually accepts, and a missing argument surfaces as a raw <code>TypeError</code> from inside the tool. A Pydantic model per tool fixes both at once: <code>model_json_schema()</code> generates the schema from the same class that validates the arguments, so there's one source of truth, and a bad call fails with a clear Pydantic error <em>before</em> <code>execute()</code> ever runs. That error goes back to the model as the tool result instead of crashing the agent, so the model can fix its call and retry.</p>
-  <pre class="mermaid">
-flowchart LR
-  AM[ArgsModel] --> Schema[JSON Schema advertised to model]
-  Call[tool call arguments] --> AM
-  AM -->|validated| Exec[execute]
-  AM -->|invalid| Err[error returned to the model]
-  </pre>
+  <ul class="stage-list">
+    <li><span class="n">01</span><a href="stages/01-talk-to-llm.html">Talk to an LLM</a></li>
+    <li><span class="n">02</span><a href="stages/02-read-tool.html">Read tool</a></li>
+    <li><span class="n">03</span><a href="stages/03-write-tool.html">Write tool</a></li>
+    <li><span class="n">04</span><a href="stages/04-agent-loop.html">Agent loop</a></li>
+    <li><span class="n">05</span><a href="stages/05-bash-tool.html">Bash tool</a></li>
+    <li><span class="n">06</span><a href="stages/06-extract-tools.html">Extract tools module</a></li>
+    <li><span class="n">07</span><a href="stages/07-pydantic-tools.html">Tool classes with Pydantic</a></li>
+  </ul>
 
   <h2>Skills</h2>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-08-skills-level1">8. Skills (level 1)</a></h3>
-  <p>A skill is a folder of instructions the model can load into context on demand instead of always — pasting every skill's full instructions into every prompt would blow the context window past a handful of skills. The fix is progressive disclosure: level 1 only ever loads a skill's <em>name</em> and <em>description</em> into the system prompt, nothing else, no matter how large the skill's actual instructions are. <code>.petite/skills/</code> deliberately isn't <code>.claude/skills/</code> — the <code>SKILL.md</code> <em>format</em> follows the open <a href="https://agentskills.io/specification">Agent Skills</a> standard, but the folder convention here is this project's own.</p>
-  <pre class="mermaid">
-flowchart LR
-  Dir[".petite/skills/*/SKILL.md"] --> FM["frontmatter: name + description"]
-  FM --> SP[System prompt]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-09-slash-commands">9. Slash commands (level 2)</a></h3>
-  <p>Level 1 tells the model a skill exists; level 2 is the first way to actually load one. When a prompt starts with <code>/name</code>, that's resolved directly to a folder and its <code>SKILL.md</code> body replaces the raw prompt as the user message — no model judgment involved, the user named the skill explicitly. Every other skill stays at level 1, which matters: if two full bodies land in context at once with conflicting instructions, the model has no way to know which one to follow.</p>
-  <pre class="mermaid">
-flowchart LR
-  P["/name args"] --> Res[resolve_slash_command]
-  Res --> Body[SKILL.md body]
-  Body --> UM[user message]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-10-skill-arguments">10. Skill arguments</a></h3>
-  <p>A skill that always says the same thing isn't very useful — <code>/deploy</code> needs to know <em>which</em> environment. <code>$ARGUMENTS</code> captures everything typed after the skill name as one string; <code>$ARGUMENTS[n]</code>/<code>$n</code> pull out one positional argument by index. The substitution order matters more than it looks: <code>$ARGUMENTS[0]</code> is replaced before the bare <code>$ARGUMENTS</code>, because doing it the other way round would mangle <code>$ARGUMENTS[0]</code> into <code>"&lt;everything&gt;[0]"</code> the moment the bare pattern matched first.</p>
-  <pre class="mermaid">
-flowchart LR
-  Body["body: $ARGUMENTS $0 $1"] --> Sub[substitute_arguments]
-  Args["positional args"] --> Sub
-  Sub --> Final[substituted body]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-11-stack-skills">11. Stack multiple skills</a></h3>
-  <p>Claude Code lets a prompt invoke several skills at once — <code>/rabbit /fox 4127</code> — so this project does too. The expansion rule is simple to say and easy to get subtly wrong: walk the leading <code>/name</code> tokens, keep expanding while each one resolves to a real skill, and stop at the first token that doesn't — that token and everything after becomes the shared argument text for every skill that <em>was</em> expanded. Getting this right means building a small table of cases (<code>/a /b 4127</code> vs <code>/a 4127 /b</code> vs <code>/a /nonexistent 4127</code>) and checking each one explicitly, because the three look almost identical.</p>
-  <pre class="mermaid">
-flowchart LR
-  P["/rabbit /fox 4127"] --> Ex[Expand leading /name tokens]
-  Ex --> B1[rabbit body]
-  Ex --> B2[fox body]
-  B1 --> M[one user message each]
-  B2 --> M
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-12-bundled-scripts">12. Bundled scripts (level 3)</a></h3>
-  <p>A skill folder can hold more than <code>SKILL.md</code> — <code>scripts/</code>, <code>references/</code>, <code>assets/</code> — and none of it costs any context until the body explicitly points at it. That's level 3: a two-line body can reference a two-hundred-line script, and neither the script nor its output enters the conversation until the model actually runs it. The one wrinkle is that the body names its files with paths <em>relative to its own folder</em> (<code>scripts/checksum.sh</code>), while the agent runs from the project root — so every invoked body gets a one-line header prepended naming its folder, and the model joins the two itself when it calls Bash.</p>
-  <pre class="mermaid">
-flowchart LR
-  Body[SKILL.md body] --> Hdr["+ folder header: located at ..."]
-  Hdr --> M[LLM joins folder + relative path]
-  M -->|Bash| Script[folder/scripts/checksum.sh]
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-13-skill-tool">13. Model-invoked skills</a></h3>
-  <p>Every invocation so far needed a human to type <code>/name</code>. This stage lets the model decide: a <code>Skill</code> tool, advertised like any other, that the model calls with a name it matched against the descriptions already sitting in the system prompt. The one thing this depends on is description quality — "Database utilities" gives the model nothing to match a request against, while "use this skill when the user asks about database migration status" does. Two frontmatter flags control who's allowed to trigger a skill this way: <code>disable-model-invocation: true</code> (user only, e.g. for anything with side effects you don't want the model deciding to run) and <code>user-invocable: false</code> (model only).</p>
-  <pre class="mermaid">
-flowchart LR
-  SP["System prompt: skill descriptions"] --> M[LLM matches request]
-  M -->|calls| ST[Skill tool]
-  ST --> B[resolved body]
-  B --> M
-  </pre>
-
-  <h3><a href="https://github.com/tobiaschc/petite/tree/stage-14-subagents">14. Subagents</a></h3>
-  <p><code>context: fork</code> runs a skill in a second, fully independent call of the same agent loop — its own empty conversation, seeded with only the skill's body, with just its final answer crossing back into the main conversation. Pulling <code>run_agent_loop()</code> out into its own function (<code>agent.py</code>) is what makes a "subagent" possible at all: it isn't a different kind of agent, just this same loop called again on a new messages list. The one real trap: a subagent must <em>not</em> get the <code>Skill</code> tool itself, or a forked skill's own folder header ("Skill: owl (located at ...)") reads to the model as an instruction to call <code>Skill</code> again — recursing forever instead of just answering.</p>
-  <pre class="mermaid">
-flowchart TD
-  Main[Main conversation] -->|Skill tool, context: fork| New["New empty messages list: only the skill's body"]
-  New --> Sub[run_agent_loop again]
-  Sub -->|Read/Write/Bash, no Skill tool| Sub
-  Sub --> Ans[Final answer only]
-  Ans --> Main
-  </pre>
+  <ul class="stage-list">
+    <li><span class="n">08</span><a href="stages/08-skills-level1.html">Skills (level 1)</a></li>
+    <li><span class="n">09</span><a href="stages/09-slash-commands.html">Slash commands (level 2)</a></li>
+    <li><span class="n">10</span><a href="stages/10-skill-arguments.html">Skill arguments</a></li>
+    <li><span class="n">11</span><a href="stages/11-stack-skills.html">Stack multiple skills</a></li>
+    <li><span class="n">12</span><a href="stages/12-bundled-scripts.html">Bundled scripts (level 3)</a></li>
+    <li><span class="n">13</span><a href="stages/13-skill-tool.html">Model-invoked skills</a></li>
+    <li><span class="n">14</span><a href="stages/14-subagents.html">Subagents</a></li>
+  </ul>
 
   <footer>
-    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub — read the git history top to bottom for the full diffs behind each paragraph above.
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub — read the git history top to bottom for the full diffs behind every stage.
   </footer>
 </main>
 

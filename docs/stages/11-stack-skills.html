@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11. Stack multiple skills — petite</title>
+<meta name="description" content="Claude Code lets a prompt invoke several skills at once — <code>/rabbit /fox 4127</code> — so this project does too. The expansion rule is simple to s">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="10-skill-arguments.html">← <span class="s">Stage </span>10<span class="t">. Skill arguments</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="12-bundled-scripts.html"><span class="s">Stage </span>12<span class="t">. Bundled scripts (level 3)</span> →</a>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">11. Stack multiple skills</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-11-stack-skills">View this stage's code on GitHub →</a>
+
+  <p>Claude Code lets a prompt invoke several skills at once — <code>/rabbit /fox 4127</code> — so this project does too. The expansion rule is simple to say and easy to get subtly wrong: walk the leading <code>/name</code> tokens, keep expanding while each one resolves to a real skill, and stop at the first token that doesn't — that token and everything after becomes the shared argument text for every skill that <em>was</em> expanded. Getting this right means building a small table of cases (<code>/a /b 4127</code> vs <code>/a 4127 /b</code> vs <code>/a /nonexistent 4127</code>) and checking each one explicitly, because the three look almost identical.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 4, "llm": [{"id": "M", "label": "model answers both"}], "local": [{"id": "B1", "label": "fox body", "col": 1, "row": 0}, {"id": "B2", "label": "walk body, $0 = dog", "col": 2, "row": 0}, {"id": "Out", "label": "print the answer", "col": 3, "row": 0}, {"id": "P", "label": "/fox /walk dog", "col": 0, "row": 1}, {"id": "Ex", "label": "expand leading /name tokens", "col": 1.5, "row": 1}], "edges": [["P", "Ex"], ["Ex", "B1"], ["Ex", "B2"], ["B1", "M", "one user message each"], ["B2", "M"], ["M", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "P-Ex", "carry": "/fox /walk dog"},
+      {"edge": "Ex-B1", "carry": "fox"},
+      {"edge": "B1-M", "carry": "…the word den"},
+      {"edge": "Ex-B2", "carry": "walk dog"},
+      {"edge": "B2-M", "carry": "Take the dog for a walk."},
+      {"edge": "M-Out", "carry": "den + Take the dog…"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Walk the leading <code>/name</code> tokens in the prompt, expanding every one that resolves to a real skill.</li>
+    <li>Stop at the first token that doesn't resolve — that token and everything after it becomes the shared argument text for every skill that <em>was</em> expanded.</li>
+    <li>Build one user message per expanded skill body instead of overwriting a single message.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 11
+cd .stages/11
+# bundled skills: "fox" (adds the word den) and "walk" (adds: Take the $0 for a walk.)
+just run "/fox /walk dog"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> Both skills in one answer — den, and Take the dog for a walk. — with dog as their shared $ARGUMENTS</p>
+  <p>
+    <code>.stages/11</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 10 11</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-11-stack-skills">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://code.claude.com/docs/en/skills#pass-arguments-to-skills">Claude Code: pass arguments to skills (stacking)</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="10-skill-arguments.html">← 10. Skill arguments</a>
+    <span class="spacer"></span>
+    <a href="12-bundled-scripts.html">12. Bundled scripts (level 3) →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

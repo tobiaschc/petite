@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>14. Subagents — petite</title>
+<meta name="description" content="<code>context: fork</code> runs a skill in a second, fully independent call of the same agent loop — its own empty conversation, seeded with only the ">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="13-skill-tool.html">← <span class="s">Stage </span>13<span class="t">. Model-invoked skills</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <span></span>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">14. Subagents</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-14-subagents">View this stage's code on GitHub →</a>
+
+  <p><code>context: fork</code> runs a skill in a second, fully independent call of the same agent loop — its own empty conversation, seeded with only the skill's body, with just its final answer crossing back into the main conversation. Pulling <code>run_agent_loop()</code> out into its own function (<code>agent.py</code>) is what makes a "subagent" possible at all: it isn't a different kind of agent, just this same loop called again on a new messages list. The one real trap: a subagent must <em>not</em> get the <code>Skill</code> tool itself, or a forked skill's own folder header ("Skill: owl (located at ...)") reads to the model as an instruction to call <code>Skill</code> again — recursing forever instead of just answering.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 4, "llm": [{"id": "M1", "label": "model · main conversation", "span": [0, 1]}, {"id": "M2", "label": "model · subagent conversation", "span": [2, 3]}], "local": [{"id": "Main", "label": "your prompt", "col": 0, "row": 0}, {"id": "Out", "label": "print the answer", "col": 1, "row": 0}, {"id": "ST", "label": "Skill tool (context: fork): a fresh conversation", "col": 2.5, "row": 0, "w": 270}], "edges": [["Main", "M1", "request"], ["M1", "ST", "tool call: Skill(owl)"], ["ST", "M1", "tool result: final answer only"], ["ST", "M2", "request: a new conversation"], ["M2", "ST", "response"], ["M1", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "Main-M1", "carry": "Who is on call…?"},
+      {"edge": "M1-ST", "carry": "Skill(owl)"},
+      {"edge": "ST-M2", "carry": "only the owl's body"},
+      {"edge": "M2-ST", "carry": "The owl is on call this week."},
+      {"edge": "ST-M1", "carry": "The owl is on call this week."},
+      {"edge": "M1-Out", "carry": "The owl is on call this week."}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Add an optional <code>context: fork</code> frontmatter field.</li>
+    <li>Pull the agent loop into its own function so it can be called again on a brand new, empty messages list.</li>
+    <li>When the <code>Skill</code> tool resolves a <code>context: fork</code> skill, seed that new list with only the skill's body (never the question that triggered it), run the loop on it, and return its final answer as the tool's result.</li>
+    <li>Don't give the subagent the Skill tool itself, or its own folder header reads as an instruction to call Skill again.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 14
+cd .stages/14
+# bundled skill "owl": "...on-call rotation...", context: fork, body: "...The owl is on call this week."
+just run "Who is on the on-call rotation right now?"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> The final answer says the owl is on call this week — verify with logs that the subagent's own conversation never contained your question, only the skill body</p>
+  <p>
+    <code>.stages/14</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 13 14</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-14-subagents">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://code.claude.com/docs/en/skills#run-skills-in-a-subagent">Claude Code: run skills in a subagent</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="13-skill-tool.html">← 13. Model-invoked skills</a>
+    <span class="spacer"></span>
+    <span></span>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

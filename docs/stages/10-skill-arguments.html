@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10. Skill arguments — petite</title>
+<meta name="description" content="A skill that always says the same thing isn't very useful — <code>/deploy</code> needs to know <em>which</em> environment. <code>$ARGUMENTS</code> cap">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="09-slash-commands.html">← <span class="s">Stage </span>9<span class="t">. Slash commands (level 2)</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="11-stack-skills.html"><span class="s">Stage </span>11<span class="t">. Stack multiple skills</span> →</a>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">10. Skill arguments</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-10-skill-arguments">View this stage's code on GitHub →</a>
+
+  <p>A skill that always says the same thing isn't very useful — <code>/deploy</code> needs to know <em>which</em> environment. <code>$ARGUMENTS</code> captures everything typed after the skill name as one string; <code>$ARGUMENTS[n]</code>/<code>$n</code> pull out one positional argument by index. The substitution order matters more than it looks: <code>$ARGUMENTS[0]</code> is replaced before the bare <code>$ARGUMENTS</code>, because doing it the other way round would mangle <code>$ARGUMENTS[0]</code> into <code>"&lt;everything&gt;[0]"</code> the moment the bare pattern matched first.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 3, "llm": [{"id": "M", "label": "model follows the body"}], "local": [{"id": "Body", "label": "body: $0 $1 $ARGUMENTS", "col": 0, "row": 0}, {"id": "Sub", "label": "substitute_arguments", "col": 1, "row": 0}, {"id": "Out", "label": "print the answer", "col": 2, "row": 0}, {"id": "Args", "label": "args: rabbit carrots", "col": 0, "row": 1}], "edges": [["Body", "Sub"], ["Args", "Sub"], ["Sub", "M", "request: the substituted body"], ["M", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "Body-Sub", "carry": "Feed the $0 some $1."},
+      {"edge": "Args-Sub", "carry": "rabbit carrots"},
+      {"edge": "Sub-M", "carry": "Feed the rabbit some carrots."},
+      {"edge": "M-Out", "carry": "Feed the rabbit some carrots."}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Parse everything after the skill name as whitespace-separated arguments.</li>
+    <li>Substitute <code>$ARGUMENTS</code> (all of it, joined) and <code>$ARGUMENTS[n]</code>/<code>$n</code> (one positional argument) in the body before sending it.</li>
+    <li>Replace indexed placeholders before the bare <code>$ARGUMENTS</code> — doing it in the other order mangles <code>$ARGUMENTS[0]</code>.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 10
+cd .stages/10
+# bundled skill "feed", body: "Feed the $0 some $1." + "Full request: $ARGUMENTS"
+just run "/feed rabbit carrots"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> Feed the rabbit some carrots. and Full request: rabbit carrots — each arg lands in its slot ($0 = rabbit, $1 = carrots) and $ARGUMENTS gets them all</p>
+  <p>
+    <code>.stages/10</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 9 10</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-10-skill-arguments">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://code.claude.com/docs/en/skills#pass-arguments-to-skills">Claude Code: pass arguments to skills</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="09-slash-commands.html">← 9. Slash commands (level 2)</a>
+    <span class="spacer"></span>
+    <a href="11-stack-skills.html">11. Stack multiple skills →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

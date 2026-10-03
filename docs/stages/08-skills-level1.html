@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8. Skills (level 1) — petite</title>
+<meta name="description" content="A skill is a folder of instructions the model can load into context on demand instead of always — pasting every skill's full instructions into every p">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="07-pydantic-tools.html">← <span class="s">Stage </span>7<span class="t">. Tool classes with Pydantic</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="09-slash-commands.html"><span class="s">Stage </span>9<span class="t">. Slash commands (level 2)</span> →</a>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">8. Skills (level 1)</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-08-skills-level1">View this stage's code on GitHub →</a>
+
+  <p>A skill is a folder of instructions the model can load into context on demand instead of always — pasting every skill's full instructions into every prompt would blow the context window past a handful of skills. The fix is progressive disclosure: level 1 only ever loads a skill's <em>name</em> and <em>description</em> into the system prompt, nothing else, no matter how large the skill's actual instructions are. <code>.petite/skills/</code> deliberately isn't <code>.claude/skills/</code> — the <code>SKILL.md</code> <em>format</em> follows the open <a href="https://agentskills.io/specification">Agent Skills</a> standard, but the folder convention here is this project's own.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 4, "llm": [{"id": "M", "label": "model sees the skill list"}], "local": [{"id": "Dir", "label": ".petite/skills/*/SKILL.md", "col": 0, "row": 0, "shape": "file"}, {"id": "FM", "label": "name + description only", "col": 1, "row": 0}, {"id": "SP", "label": "system prompt", "col": 2, "row": 0}, {"id": "Out", "label": "print the answer", "col": 3, "row": 0}], "edges": [["Dir", "FM"], ["FM", "SP"], ["SP", "M", "request: the system prompt lists the skills"], ["M", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "Dir-FM", "carry": "otter/SKILL.md"},
+      {"edge": "FM-SP", "carry": "otter: Deploys the otter…"},
+      {"edge": "SP-M", "carry": "skills: otter"},
+      {"edge": "M-Out", "carry": "otter"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Create <code>.petite/skills/&lt;name&gt;/SKILL.md</code> files: YAML frontmatter with <code>name</code> and <code>description</code>, then a body below a closing <code>---</code>.</li>
+    <li>Scan that directory, parse just the frontmatter of every skill found, and add a system prompt listing each as <code>- name: description</code>. Never read the body at this stage.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 8
+cd .stages/08
+mkdir -p .petite/skills/otter && cat > .petite/skills/otter/SKILL.md <<EOF
+---
+name: otter
+description: Deploys the otter service to production.
+---
+Run the deploy script.
+EOF
+just run "What skills do you have access to? List their names only."</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> "otter" appears in the answer, with no mention of its body content</p>
+  <p>
+    <code>.stages/08</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 7 8</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-08-skills-level1">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://agentskills.io/specification">Agent Skills specification</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="07-pydantic-tools.html">← 7. Tool classes with Pydantic</a>
+    <span class="spacer"></span>
+    <a href="09-slash-commands.html">9. Slash commands (level 2) →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>13. Model-invoked skills — petite</title>
+<meta name="description" content="Every invocation so far needed a human to type <code>/name</code>. This stage lets the model decide: a <code>Skill</code> tool, advertised like any ot">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="12-bundled-scripts.html">← <span class="s">Stage </span>12<span class="t">. Bundled scripts (level 3)</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="14-subagents.html"><span class="s">Stage </span>14<span class="t">. Subagents</span> →</a>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">13. Model-invoked skills</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-13-skill-tool">View this stage's code on GitHub →</a>
+
+  <p>Every invocation so far needed a human to type <code>/name</code>. This stage lets the model decide: a <code>Skill</code> tool, advertised like any other, that the model calls with a name it matched against the descriptions already sitting in the system prompt. The one thing this depends on is description quality — "Database utilities" gives the model nothing to match a request against, while "use this skill when the user asks about database migration status" does. Two frontmatter flags control who's allowed to trigger a skill this way: <code>disable-model-invocation: true</code> (user only, e.g. for anything with side effects you don't want the model deciding to run) and <code>user-invocable: false</code> (model only).</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 3, "llm": [{"id": "M", "label": "model matches the request to a skill"}], "local": [{"id": "SP", "label": "system prompt: skill descriptions", "col": 0, "row": 0}, {"id": "ST", "label": "Skill tool: load the body", "col": 1, "row": 0}, {"id": "Out", "label": "print the answer", "col": 2, "row": 0}], "edges": [["SP", "M", "request: descriptions only"], ["M", "ST", "tool call: Skill"], ["ST", "M", "tool result: the body"], ["M", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "SP-M", "carry": "beaver: …migration status"},
+      {"edge": "M-ST", "carry": "Skill(beaver)"},
+      {"edge": "ST-M", "carry": "beaver's body"},
+      {"edge": "M-Out", "carry": "dam"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Add a <code>Skill</code> tool (<code>name</code>, optional <code>args</code>) that resolves a skill by name and returns its body as the tool result — same resolution as slash commands, triggered by a tool call instead.</li>
+    <li>Tell the model in the system prompt to call it when a skill's description matches the request. Descriptions must say <em>when</em> to use a skill, not just what it does, or the model has nothing to match against.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 13
+cd .stages/13
+# bundled skill "beaver": "Use this skill when the user asks for the database migration status." (answers: dam)
+just run "What is the database migration status?"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> dam — the model called the Skill tool on its own; you never typed its name</p>
+  <p>
+    <code>.stages/13</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 12 13</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-13-skill-tool">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://code.claude.com/docs/en/skills#control-who-invokes-a-skill">Claude Code: control who invokes a skill</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="12-bundled-scripts.html">← 12. Bundled scripts (level 3)</a>
+    <span class="spacer"></span>
+    <a href="14-subagents.html">14. Subagents →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

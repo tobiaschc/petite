@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2. Read tool — petite</title>
+<meta name="description" content="An LLM can't touch a filesystem by default — it only produces text. A 'tool' is just a JSON schema describing a function, sent alongside the prompt, t">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="01-talk-to-llm.html">← <span class="s">Stage </span>1<span class="t">. Talk to an LLM</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="03-write-tool.html"><span class="s">Stage </span>3<span class="t">. Write tool</span> →</a>
+  </nav>
+  <p class="stage-kicker">Base agent</p>
+  <h1 class="page-title">2. Read tool</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-02-read-tool">View this stage's code on GitHub →</a>
+
+  <p>An LLM can't touch a filesystem by default — it only produces text. A "tool" is just a JSON schema describing a function, sent alongside the prompt, that the model can ask to have called. This stage advertises exactly one: <code>Read</code>. Still a single round trip — the model asks, you call it, you print the result and exit. No loop yet, because the point here is purely "the model can ask for something it doesn't have."</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 3, "llm": [{"id": "M", "label": "model picks a tool"}], "local": [{"id": "U", "label": "your prompt", "col": 0, "row": 0}, {"id": "Run", "label": "run Read here", "col": 1, "row": 0}, {"id": "F", "label": "test.txt", "col": 1, "row": 1, "shape": "file"}, {"id": "Out", "label": "print the result", "col": 2, "row": 1}], "edges": [["U", "M", "request: prompt + Read schema"], ["M", "Run", "response: a tool call"], ["Run", "F", "open"], ["F", "Out", "contents"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "U-M", "carry": "Show me test.txt + Read schema"},
+      {"edge": "M-Run", "carry": "Read(test.txt)"},
+      {"edge": "Run-F", "carry": "open('test.txt')"},
+      {"edge": "F-Out", "carry": "hello from petite"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Add a <code>Read</code> tool to the request's <code>tools</code> array: a JSON schema with one required <code>file_path</code> string.</li>
+    <li>When the model's response includes a tool call for it, execute it yourself (read the file) and print the raw contents. Still a single round trip — don't loop yet.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 2
+cd .stages/02
+echo "hello from petite" > test.txt
+just run "Show me what's inside test.txt. Respond with only the file contents, no backticks."</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> hello from petite</p>
+  <p>
+    <code>.stages/02</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 1 2</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-02-read-tool">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://code.claude.com/docs/en/tools-reference">Claude Code tools reference</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="01-talk-to-llm.html">← 1. Talk to an LLM</a>
+    <span class="spacer"></span>
+    <a href="03-write-tool.html">3. Write tool →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

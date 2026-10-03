@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5. Bash tool — petite</title>
+<meta name="description" content="Read and Write cover files; Bash covers everything else — <code>ls</code>, <code>rm</code>, running a test suite, whatever the model decides to try. I">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="04-agent-loop.html">← <span class="s">Stage </span>4<span class="t">. Agent loop</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="06-extract-tools.html"><span class="s">Stage </span>6<span class="t">. Extract tools module</span> →</a>
+  </nav>
+  <p class="stage-kicker">Base agent</p>
+  <h1 class="page-title">5. Bash tool</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-05-bash-tool">View this stage's code on GitHub →</a>
+
+  <p>Read and Write cover files; Bash covers everything else — <code>ls</code>, <code>rm</code>, running a test suite, whatever the model decides to try. It's the one tool that converts "the model composed a shell command" into "it actually happened," which is as much power as it is risk: <code>subprocess.run</code> with <code>shell=True</code> executes literally what the model wrote.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 5, "llm": [{"id": "M", "label": "model picks a tool"}], "local": [{"id": "U", "label": "your prompt", "col": 0, "row": 0}, {"id": "D", "label": "dispatch", "col": 2, "row": 0, "shape": "decision"}, {"id": "R", "label": "Read", "col": 1, "row": 1}, {"id": "W", "label": "Write", "col": 2, "row": 1}, {"id": "B", "label": "Bash", "col": 3, "row": 1}, {"id": "S", "label": "your shell", "col": 4, "row": 1, "shape": "file"}], "edges": [["U", "M", "request: prompt + tool schemas"], ["M", "D", "response: a tool call"], ["D", "R"], ["D", "W"], ["D", "B"], ["B", "S", "ls -1"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "U-M", "carry": "List the files… + tools"},
+      {"edge": "M-D", "carry": "Bash(ls -1)"},
+      {"edge": "D-B", "carry": "ls -1"},
+      {"edge": "B-S", "carry": "runs in your shell"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Add a <code>Bash</code> tool: one required <code>command</code> string.</li>
+    <li>Run it with your language's shell execution (<code>subprocess.run(..., shell=True)</code>), capture stdout+stderr together, and append a note with the exit code if it failed.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 5
+cd .stages/05
+just run "List the files in this directory with ls, then tell me how many there are."</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> A number matching the actual file count — check with ls yourself</p>
+  <p>
+    <code>.stages/05</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 4 5</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-05-bash-tool">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://code.claude.com/docs/en/tools-reference">Claude Code tools reference</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="04-agent-loop.html">← 4. Agent loop</a>
+    <span class="spacer"></span>
+    <a href="06-extract-tools.html">6. Extract tools module →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

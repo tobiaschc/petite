@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7. Tool classes with Pydantic — petite</title>
+<meta name="description" content="Hand-written JSON Schema and <code>fn(**arguments)</code> can silently drift apart — nothing forces the schema a model sees to match what the function">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="06-extract-tools.html">← <span class="s">Stage </span>6<span class="t">. Extract tools module</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="08-skills-level1.html"><span class="s">Stage </span>8<span class="t">. Skills (level 1)</span> →</a>
+  </nav>
+  <p class="stage-kicker">Base agent</p>
+  <h1 class="page-title">7. Tool classes with Pydantic</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-07-pydantic-tools">View this stage's code on GitHub →</a>
+
+  <p>Hand-written JSON Schema and <code>fn(**arguments)</code> can silently drift apart — nothing forces the schema a model sees to match what the function actually accepts, and a missing argument surfaces as a raw <code>TypeError</code> from inside the tool. A Pydantic model per tool fixes both at once: <code>model_json_schema()</code> generates the schema from the same class that validates the arguments, so there's one source of truth, and a bad call fails with a clear Pydantic error <em>before</em> <code>execute()</code> ever runs. That error goes back to the model as the tool result instead of crashing the agent, so the model can fix its call and retry.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 3, "llm": [{"id": "M", "label": "model calls a tool"}], "local": [{"id": "Schema", "label": "JSON Schema", "col": 0, "row": 0}, {"id": "AM", "label": "ArgsModel", "col": 1, "row": 0}, {"id": "Err", "label": "error text", "col": 2, "row": 0}, {"id": "Exec", "label": "execute", "col": 1, "row": 1}], "edges": [["AM", "Schema"], ["Schema", "M", "advertised to the model"], ["M", "AM", "tool call arguments"], ["AM", "Err", "invalid"], ["Err", "M", "sent back as the tool result"], ["AM", "Exec", "valid"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "AM-Schema", "carry": "model_json_schema()"},
+      {"edge": "Schema-M", "carry": "WriteArgs schema"},
+      {"edge": "M-AM", "carry": "{file_path: 'x.txt'}"},
+      {"edge": "AM-Err", "carry": "content: Field required"},
+      {"edge": "Err-M", "carry": "Invalid arguments for Write…"},
+      {"edge": "M-AM", "carry": "{file_path, content}"},
+      {"edge": "AM-Exec", "carry": "validated ✓"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Define one Pydantic model per tool's arguments (e.g. <code>ReadArgs(file_path: str)</code>).</li>
+    <li>Generate each tool's JSON Schema from <code>model_json_schema()</code> instead of hand-writing it, and validate incoming arguments through that model before calling <code>execute()</code>.</li>
+    <li>Catch the <code>ValidationError</code> and return it as the tool's result, so a bad call doesn't crash the agent loop.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 7
+cd .stages/07
+# call a tool with a missing required argument and check the error
+uv run python -c "from tools import execute_tool; print(execute_tool('Write', {'file_path': 'x.txt'}))"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> Invalid arguments for Write: 1 validation error for WriteArgs … content Field required — returned as text before the tool runs, not a raw TypeError and not a crash</p>
+  <p>
+    <code>.stages/07</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 6 7</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-07-pydantic-tools">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://docs.pydantic.dev/latest/">Pydantic docs</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="06-extract-tools.html">← 6. Extract tools module</a>
+    <span class="spacer"></span>
+    <a href="08-skills-level1.html">8. Skills (level 1) →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

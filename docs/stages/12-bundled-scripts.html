@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12. Bundled scripts (level 3) — petite</title>
+<meta name="description" content="A skill folder can hold more than <code>SKILL.md</code> — <code>scripts/</code>, <code>references/</code>, <code>assets/</code> — and none of it costs">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="11-stack-skills.html">← <span class="s">Stage </span>11<span class="t">. Stack multiple skills</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="13-skill-tool.html"><span class="s">Stage </span>13<span class="t">. Model-invoked skills</span> →</a>
+  </nav>
+  <p class="stage-kicker">Skills</p>
+  <h1 class="page-title">12. Bundled scripts (level 3)</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-12-bundled-scripts">View this stage's code on GitHub →</a>
+
+  <p>A skill folder can hold more than <code>SKILL.md</code> — <code>scripts/</code>, <code>references/</code>, <code>assets/</code> — and none of it costs any context until the body explicitly points at it. That's level 3: a two-line body can reference a two-hundred-line script, and neither the script nor its output enters the conversation until the model actually runs it. The one wrinkle is that the body names its files with paths <em>relative to its own folder</em> (<code>scripts/sha256.sh</code>), while the agent runs from the project root. Telling the model which folder that is turns out not to be enough — models often run the relative path as-is and get "file not found" — so before a body reaches the model, its bundled paths are rewritten to paths from the project root (<code>.petite/skills/badger/scripts/sha256.sh</code>).</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 4, "llm": [{"id": "M", "label": "model decides to run the script"}], "local": [{"id": "Rw", "label": "rewrite bundled paths", "col": 0, "row": 0}, {"id": "Run", "label": "run Bash here", "col": 1, "row": 0}, {"id": "Script", "label": "sha256.sh", "col": 2, "row": 0, "shape": "file"}, {"id": "Out", "label": "print the answer", "col": 3, "row": 0}, {"id": "Body", "label": "SKILL.md body", "col": 0, "row": 1}], "edges": [["Body", "Rw"], ["Rw", "M", "request: body with the full path"], ["M", "Run", "tool call: Bash"], ["Run", "Script"], ["Script", "M", "tool result"], ["M", "Out", "response"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "Body-Rw", "carry": "Run scripts/sha256.sh"},
+      {"edge": "Rw-M", "carry": "Run .petite/…/sha256.sh"},
+      {"edge": "M-Run", "carry": "Bash(…/sha256.sh)"},
+      {"edge": "Run-Script", "carry": "runs on your machine"},
+      {"edge": "Script-M", "carry": "4158bc93"},
+      {"edge": "M-Out", "carry": "4158bc93"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Let a skill folder hold <code>scripts/</code>, <code>references/</code>, or <code>assets/</code> alongside <code>SKILL.md</code> — none of it loads into context unless the body names it.</li>
+    <li>Before a resolved body reaches the model, rewrite its bundled paths (<code>scripts/</code>, <code>references/</code>, <code>assets/</code>) to paths from the project root, and prefix a header naming the skill's folder (<code>Skill: name (located at path)</code>).</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 12
+cd .stages/12
+# bundled skill "badger", body: "Run `scripts/sha256.sh` using the Bash tool. ..."
+just run "/badger"</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> 4158bc93 — the value the bundled script prints; check it yourself with <code>bash .petite/skills/badger/scripts/sha256.sh</code></p>
+  <p>
+    <code>.stages/12</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 11 12</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-12-bundled-scripts">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+  <h2>References</h2>
+  <ul class="refs-list">
+    <li><a href="https://agentskills.io/specification#optional-directories">Agent Skills: optional directories</a></li>
+    <li><a href="https://agentskills.io/specification#file-references">Agent Skills: file references</a></li>
+  </ul>
+
+  <div class="stage-nav">
+    <a href="11-stack-skills.html">← 11. Stack multiple skills</a>
+    <span class="spacer"></span>
+    <a href="13-skill-tool.html">13. Model-invoked skills →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>

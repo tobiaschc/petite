@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6. Extract tools module — petite</title>
+<meta name="description" content="Three tools and <code>main.py</code> already has a growing <code>if/elif</code> chain mixing agent-loop logic with tool-dispatch logic. This stage is ">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/mark.png" type="image/png">
+</head>
+<body>
+<main>
+  <nav class="stage-nav-top">
+    <a href="05-bash-tool.html">← <span class="s">Stage </span>5<span class="t">. Bash tool</span></a>
+    <a class="all" href="../index.html">All stages</a>
+    <a href="07-pydantic-tools.html"><span class="s">Stage </span>7<span class="t">. Tool classes with Pydantic</span> →</a>
+  </nav>
+  <p class="stage-kicker">Base agent</p>
+  <h1 class="page-title">6. Extract tools module</h1>
+  <a class="code-link" href="https://github.com/tobiaschc/petite/tree/stage-06-extract-tools">View this stage's code on GitHub →</a>
+
+  <p>Three tools and <code>main.py</code> already has a growing <code>if/elif</code> chain mixing agent-loop logic with tool-dispatch logic. This stage is pure refactor, no new behavior: <code>tools.py</code> now owns the three tool functions, their JSON specs, and a <code>TOOL_FUNCTIONS</code> dict that <code>execute_tool</code> looks up by name. Every tool added from here on touches one file, not two.</p>
+  <div class="diagram"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 3, "llm": [{"id": "M", "label": "model picks a tool"}], "local": [{"id": "Specs", "label": "TOOLS: schemas", "col": 1, "row": 0}, {"id": "Funcs", "label": "TOOL_FUNCTIONS: the code", "col": 2, "row": 0}, {"id": "Main", "label": "main.py", "col": 0, "row": 1}, {"id": "Tools", "label": "tools.py", "col": 1, "row": 1}], "edges": [["Main", "Tools", "import"], ["Tools", "Specs"], ["Specs", "M", "sent with every request"], ["M", "Funcs", "response: a tool call"]]}
+  </script>
+  <script type="application/json" class="rabbit-tour">
+    [
+      {"edge": "Main-Tools", "carry": "import TOOLS"},
+      {"edge": "Tools-Specs", "carry": "Read · Write · Bash"},
+      {"edge": "Specs-M", "carry": "tool schemas"},
+      {"edge": "M-Funcs", "carry": "Bash(ls -1)"}
+    ]
+  </script>
+  <script type="module" src="../diagram.js"></script>
+  <script type="module" src="../rabbit.js"></script>
+
+  <h2>Your task</h2>
+  <ol class="task-list">
+    <li>Pure refactor, no new behavior: move the tool functions, their JSON specs, and a name→function dispatch dict into their own module.</li>
+    <li><code>main.py</code> should shrink to importing that module's specs + dispatcher instead of growing an <code>if/elif</code> chain.</li>
+  </ol>
+
+  <h2>Try it</h2>
+  <p>Run this stage's own code:</p>
+  <div class="replicate-steps">
+    <pre><code>just stage 6
+cd .stages/06
+just run "List the files in this directory with ls, then tell me how many there are."</code></pre>
+  </div>
+  <p class="expect"><strong>Expect:</strong> The same behaviour as stage 5 — the file count is higher only because tools.py (and, once it is imported, __pycache__/) now exist; this stage changes where the code lives, not what it does</p>
+  <p>
+    <code>.stages/06</code> is a git worktree: your checkout stays on <code>main</code>, so
+    <code>just</code> keeps working there. Compare with the previous stage with <code>just diff 5 6</code>,
+    or <a href="https://github.com/tobiaschc/petite/tree/stage-06-extract-tools">browse it on GitHub</a>;
+    <code>just clean-stages</code> removes the worktrees.
+  </p>
+
+
+  <div class="stage-nav">
+    <a href="05-bash-tool.html">← 5. Bash tool</a>
+    <span class="spacer"></span>
+    <a href="07-pydantic-tools.html">7. Tool classes with Pydantic →</a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  </footer>
+</main>
+</body>
+</html>
