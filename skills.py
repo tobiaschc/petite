@@ -1,16 +1,18 @@
 """
-Stage 11: stacking multiple skills in one prompt
+Stage 12: level 3 — bundled scripts
 
-A prompt can invoke more than one skill at once: "/rabbit /fox 4127"
-loads both bodies, and the trailing "4127" reaches each of them as
-$ARGUMENTS. Expansion runs left to right from the start of the prompt —
-every token that names a real skill gets expanded; the first token that
-doesn't name a skill ends the run, and it (plus everything after it)
-becomes the shared argument text for every skill that WAS expanded.
+A skill folder can hold more than SKILL.md: scripts/, references/,
+assets/ — level 3 of progressive disclosure. These never enter context
+on their own; the body has to point at them, and only then does the
+model load/run them (here, scripts/, via the Bash tool).
 
-  "/rabbit /fox 4127"        -> expands [rabbit, fox], args = "4127"
-  "/rabbit 4127 /fox"        -> expands [rabbit],       args = "4127 /fox"
-  "/rabbit /owl 4127" (no owl skill) -> expands [rabbit], args = "/owl 4127"
+A body says "Run `scripts/sha256.sh`" using a path relative to its OWN
+skill folder — but the agent runs from the project root. Only telling
+the model which folder that is isn't enough: models often run the
+relative path as-is and get "file not found". So before the body
+reaches the model, its bundled paths (scripts/, references/, assets/)
+are rewritten to project-root paths, e.g. "scripts/sha256.sh" becomes
+".petite/skills/badger/scripts/sha256.sh".
 """
 
 import os
@@ -150,7 +152,25 @@ def resolve_slash_command(prompt, skills_dir=SKILLS_DIR):
 
     args = tokens[i:]
 
-    return [substitute_arguments(load_skill_body(name, skills_dir), args) for name in expanded_names]
+    return [
+        _with_folder_header(name, substitute_arguments(load_skill_body(name, skills_dir), args), skills_dir)
+        for name in expanded_names
+    ]
+
+
+def _with_folder_header(name, body, skills_dir=SKILLS_DIR):
+    """Prefix a skill's (already-substituted) body with a header naming
+    its own folder, and rewrite the body's bundled paths (scripts/,
+    references/, assets/) to paths from the project root, where the
+    agent, and so every Bash/Read call, actually runs.
+    """
+    folder = os.path.join(skills_dir, name)
+    body = re.sub(
+        r"(?<![\w./-])((?:scripts|references|assets)/[\w./-]+)",
+        lambda m: os.path.join(folder, m.group(1)),
+        body,
+    )
+    return f"Skill: {name} (located at {folder})\n\n{body}"
 
 
 def substitute_arguments(body, args):

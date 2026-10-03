@@ -21,8 +21,9 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 9. Slash commands (level 2) — load a skill's full body on demand
 - [x] 10. Skill arguments — `$ARGUMENTS`, `$ARGUMENTS[n]`, `$n` placeholders substituted in the body
 - [x] 11. Stack multiple skills — `/rabbit /fox 4127` expands both, sharing trailing args
-- [ ] 12. Skill classes — same idea as stage 7, applied to skills
-- [ ] 13. Tests — fake LLM client, no real API calls
+- [x] 12. Bundled scripts (level 3) — `scripts/` loaded only when the body points at them, via a folder-path header
+- [ ] 13. Skill classes — same idea as stage 7, applied to skills
+- [ ] 14. Tests — fake LLM client, no real API calls
 
 ## Running it
 
@@ -46,3 +47,5 @@ Most "build your own agent" content either hides the hard parts behind a framewo
 - [OpenRouter quickstart](https://openrouter.ai/docs/quickstart#using-the-openrouter-api) — the OpenAI-compatible API this project talks to by default.
 - [Agent Skills specification](https://agentskills.io/specification) — the open, vendor-neutral SKILL.md format this project implements (own folder convention, standard file format).
 - [Claude Code: pass arguments to skills](https://code.claude.com/docs/en/skills#pass-arguments-to-skills) — the `$ARGUMENTS` / `$0` placeholders and multi-skill stacking convention these stages implement.
+- [Agent Skills: optional directories](https://agentskills.io/specification#optional-directories) — the `scripts/` / `references/` / `assets/` convention for level-3 disclosure.
+- [Agent Skills: file references](https://agentskills.io/specification#file-references) — relative-path convention for files a skill body points at.
