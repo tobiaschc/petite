@@ -42,6 +42,14 @@
     <li>Run it with your language's shell execution (<code>subprocess.run(..., shell=True)</code>), capture stdout+stderr together, and append a note with the exit code if it failed.</li>
   </ol>
 
+  <!-- generated:diff -->
+  <h2>The solution</h2>
+  <p class="diff-intro">Try the task above first. When you want to compare, this is exactly what changed since stage 4 (<code>just diff 4 5</code> shows the same).</p>
+  <details class="solution"><summary><span class="show">Show the solution</span><span class="hide">Hide the solution</span> <span class="d-stat"><span class="d-plus">+32</span> <span class="d-minus">−10</span> lines</span></summary>
+  <details class="diff" open><summary><code>main.py</code><span class="d-stat"><span class="d-plus">+32</span> <span class="d-minus">−10</span></span></summary><pre class="diff-body"><span class="d-hunk">⋯ </span><span class="d-ctx">&quot;&quot;&quot;</span><span class="d-del">Stage 4: the agent loop</span><span class="d-add">Stage 5: the Bash tool</span><span class="d-ctx"> </span><span class="d-del">Up to now every run was one round trip: ask, maybe run one tool, exit.</span><span class="d-del">That breaks for multi-step tasks (&quot;read a file and fix any bugs&quot;) because</span><span class="d-del">the model never gets to see a tool&#x27;s result and react to it.</span><span class="d-del"> </span><span class="d-del">The fix: keep `messages` around across turns, keep calling the API, and</span><span class="d-del">only stop when the model answers with plain text (no more tool_calls).</span><span class="d-del">Each tool call&#x27;s result is appended as its own `role: &quot;tool&quot;` message,</span><span class="d-del">tagged with that call&#x27;s `tool_call_id` so the model knows which result</span><span class="d-del">answers which request.</span><span class="d-add">Shell access: subprocess.run captures stdout and stderr, and the combined</span><span class="d-add">output goes back to the model as the tool&#x27;s result (empty on a silent</span><span class="d-add">success, like `rm file` with no output).</span><span class="d-ctx">&quot;&quot;&quot;</span><span class="d-ctx"> </span><span class="d-ctx">import argparse</span><span class="d-ctx">import json</span><span class="d-ctx">import os</span><span class="d-add">import subprocess</span><span class="d-ctx">import sys</span><span class="d-ctx"> </span><span class="d-ctx">from openai import OpenAI</span><span class="d-hunk">⋯ TOOLS = [</span><span class="d-ctx">            },</span><span class="d-ctx">        },</span><span class="d-ctx">    },</span><span class="d-add">    {</span><span class="d-add">        &quot;type&quot;: &quot;function&quot;,</span><span class="d-add">        &quot;function&quot;: {</span><span class="d-add">            &quot;name&quot;: &quot;Bash&quot;,</span><span class="d-add">            &quot;description&quot;: &quot;Execute a shell command&quot;,</span><span class="d-add">            &quot;parameters&quot;: {</span><span class="d-add">                &quot;type&quot;: &quot;object&quot;,</span><span class="d-add">                &quot;required&quot;: [&quot;command&quot;],</span><span class="d-add">                &quot;properties&quot;: {</span><span class="d-add">                    &quot;command&quot;: {</span><span class="d-add">                        &quot;type&quot;: &quot;string&quot;,</span><span class="d-add">                        &quot;description&quot;: &quot;The command to execute&quot;,</span><span class="d-add">                    }</span><span class="d-add">                },</span><span class="d-add">            },</span><span class="d-add">        },</span><span class="d-add">    },</span><span class="d-ctx">]</span><span class="d-ctx"> </span><span class="d-ctx"> </span><span class="d-hunk">⋯ def Write(file_path, content):</span><span class="d-ctx">    return f&quot;Wrote to {file_path}&quot;</span><span class="d-ctx"> </span><span class="d-ctx"> </span><span class="d-add">def Bash(command):</span><span class="d-add">    completed = subprocess.run(command, shell=True, capture_output=True, text=True)</span><span class="d-add">    output = completed.stdout + completed.stderr</span><span class="d-add">    if completed.returncode != 0:</span><span class="d-add">        output += f&quot;\n(exit code {completed.returncode})&quot;</span><span class="d-add">    return output</span><span class="d-add"> </span><span class="d-add"> </span><span class="d-ctx">def execute_tool(name, arguments):</span><span class="d-ctx">    if name == &quot;Read&quot;:</span><span class="d-ctx">        return Read(arguments[&quot;file_path&quot;])</span><span class="d-ctx">    if name == &quot;Write&quot;:</span><span class="d-ctx">        return Write(arguments[&quot;file_path&quot;], arguments[&quot;content&quot;])</span><span class="d-add">    if name == &quot;Bash&quot;:</span><span class="d-add">        return Bash(arguments[&quot;command&quot;])</span><span class="d-ctx">    raise RuntimeError(f&quot;unknown tool: {name}&quot;)</span><span class="d-ctx"> </span><span class="d-ctx"> </span></pre></details>
+  </details>
+  <!-- /generated:diff -->
+
   <h2>Try it</h2>
   <p>Run this stage's own code:</p>
   <div class="replicate-steps">
@@ -57,6 +65,15 @@ just run "List the files in this directory with ls, then tell me how many there 
     <code>just clean-stages</code> removes the worktrees.
   </p>
 
+  <!-- generated:map -->
+  <h2>Where this fits</h2>
+  <p class="map-intro">The whole agent; this stage builds the highlighted part. Click any part to jump to its stage.</p>
+  <div class="diagram map"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 5, "rowGap": 118, "llm": [{"id": "M", "label": "the model", "span": [0, 3]}, {"id": "M2", "label": "a subagent's model", "span": [4, 4]}], "local": [{"id": "P", "label": "your prompt", "col": 0, "row": 0, "badge": "1", "href": "01-talk-to-llm.html"}, {"id": "Slash", "label": "expand /slash commands", "col": 1, "row": 0, "badge": "9–11", "href": "09-slash-commands.html"}, {"id": "Msgs", "label": "messages + system prompt", "col": 2, "row": 0, "badge": "4", "href": "04-agent-loop.html"}, {"id": "Val", "label": "validate the tool call", "col": 3, "row": 0, "badge": "7", "href": "07-pydantic-tools.html"}, {"id": "Fork", "label": "fresh conversation", "col": 4, "row": 0, "badge": "14", "href": "14-subagents.html"}, {"id": "Disc", "label": "discover skills", "col": 1, "row": 1, "badge": "8", "href": "08-skills-level1.html"}, {"id": "Scripts", "label": "bundled scripts (via Bash)", "col": 2, "row": 1, "badge": "12", "href": "12-bundled-scripts.html"}, {"id": "Tools", "label": "Read · Write · Bash · Skill", "col": 3, "row": 1, "badge": "2–6 · 13", "href": "02-read-tool.html"}], "edges": [["P", "Slash"], ["Slash", "Msgs"], ["Disc", "Msgs", "skill list"], ["Msgs", "M", "request"], ["M", "Val", "text or a tool call"], ["Val", "Tools", "run it"], ["Tools", "Msgs", "result"], ["Tools", "Scripts"], ["Tools", "Fork", "Skill (fork)"], ["Fork", "M2", "request"], ["M2", "Fork", "final answer"], ["Fork", "Tools"]], "highlight": ["Tools"]}
+  </script>
+  <!-- /generated:map -->
+
   <h2>References</h2>
   <ul class="refs-list">
     <li><a href="https://code.claude.com/docs/en/tools-reference">Claude Code tools reference</a></li>
@@ -68,8 +85,12 @@ just run "List the files in this directory with ls, then tell me how many there 
     <a href="06-extract-tools.html">6. Extract tools module →</a>
   </div>
 
-  <footer>
-    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  <footer class="site-footer">
+    <span><a href="../">petite</a> · a coding agent, one concept per commit</span>
+    <span class="footer-links">
+      <a href="https://github.com/tobiaschc/petite/blob/main/LICENSE">MIT license</a>
+      <a class="gh" href="https://github.com/tobiaschc/petite"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> tobiaschc/petite</a>
+    </span>
   </footer>
 </main>
 </body>

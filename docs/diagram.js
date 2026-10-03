@@ -66,8 +66,9 @@ function render(container, spec) {
   const llmY = LLM_TOP + 8; // top of the LLM nodes
   const llmBottom = llmY + NODE_H + 14;
   const localTop = llmBottom + GAP;
-  const rowY = (row) => localTop + 16 + row * ROW_GAP; // top of a local node
-  const H = rowY(rows - 1) + NODE_H + 34;
+  const rowGap = spec.rowGap ?? ROW_GAP;
+  const rowY = (row) => localTop + 16 + row * rowGap; // top of a local node
+  const H = rowY(rows - 1) + NODE_H + 40;
 
   const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", class: "lanes" });
   svg.style.maxWidth = "100%";
@@ -97,15 +98,33 @@ function render(container, spec) {
 
   // nodes
   const nodes = {};
+  const lit = spec.highlight ? new Set(spec.highlight) : null; // map: the stage's own parts
   const drawNode = (n, x, y, w, kind) => {
-    const g = el("g", {}, root);
+    let g = el("g", {}, root);
+    if (n.href) {
+      g = el("a", { href: n.href }, g);
+      el("title", {}, g).textContent = `Go to: ${n.label}`;
+    }
+    if (lit && kind === "local") g.setAttribute("opacity", lit.has(n.id) ? 1 : 0.38);
     const lines = wrap(n.label, Math.max(10, Math.floor(w / 7.2)));
-    const fill = kind === "llm" ? C.llmNode : C.localNode;
-    const stroke = kind === "llm" ? C.llmBorder : C.localBorder;
+    const on = lit?.has(n.id);
+    const fill = kind === "llm" ? C.llmNode : on ? "#e8efff" : C.localNode;
+    const stroke = kind === "llm" ? C.llmBorder : on ? C.cross : C.localBorder;
     const rx = n.shape === "decision" ? NODE_H / 2 : 6;
-    el("rect", { x, y, width: w, height: NODE_H, rx, fill, stroke }, g);
+    el("rect", { x, y, width: w, height: NODE_H, rx, fill, stroke, "stroke-width": on ? 2.2 : 1 }, g);
     if (n.shape === "file") el("path", { d: `M${x + w - 12},${y} l12,12`, stroke, fill: "none" }, g);
     textBlock(g, x + w / 2, y + NODE_H / 2, lines, { "font-size": lines.length > 1 ? 11.5 : 12.5, fill: C.ink });
+    if (n.badge) {
+      // the stage(s) that build this part, as a small pill on the top-right corner
+      // bottom-right: arrows mostly attach to the top edge
+      const bt = el("text", { y: y + NODE_H + 3.6, "font-size": 9.5, "font-weight": 700, fill: "#fff", "text-anchor": "middle" }, g);
+      bt.textContent = n.badge;
+      const bw = Math.max(16, bt.getComputedTextLength() + 10);
+      const bx = x + w - bw / 2 - 4;
+      bt.setAttribute("x", bx);
+      el("rect", { x: bx - bw / 2, y: y + NODE_H - 7, width: bw, height: 14, rx: 7, fill: on ? C.cross : C.local }, g).after(bt);
+      g.appendChild(bt); // text above its pill
+    }
     nodes[n.id] = { x, y, w, h: NODE_H, kind, cx: x + w / 2 };
   };
   for (const n of spec.llm) {
@@ -131,6 +150,18 @@ function render(container, spec) {
     const local = e.a.kind === "local" ? e.from : e.to;
     crossCount[local] = (crossCount[local] ?? 0) + 1;
   }
+  // arrows between rows: spread their ends along the node's top/bottom edge
+  const vCount = {};
+  const vKey = (e) => {
+    const down = e.b.y > e.a.y;
+    return [e.from + (down ? "B" : "T"), e.to + (down ? "T" : "B")];
+  };
+  for (const e of edges) if (e.a.kind === e.b.kind && e.a.y !== e.b.y) for (const k of vKey(e)) vCount[k] = (vCount[k] ?? 0) + 1;
+  const vOff = (k) => {
+    const i = slot(k, "v");
+    const c = vCount[k];
+    return c > 1 ? (i - (c - 1) / 2) * 30 : 0;
+  };
   const seen = {};
   let crossIndex = 0;
 
@@ -165,8 +196,9 @@ function render(container, spec) {
       ly = y - 9;
     } else {
       const down = e.b.y > e.a.y;
-      const sx = e.a.cx, sy = down ? e.a.y + NODE_H : e.a.y;
-      const ex = e.b.cx, ey = down ? e.b.y : e.b.y + NODE_H;
+      const [ka, kb] = vKey(e);
+      const sx = e.a.cx + vOff(ka), sy = down ? e.a.y + NODE_H : e.a.y;
+      const ex = e.b.cx + vOff(kb), ey = down ? e.b.y : e.b.y + NODE_H;
       const my = (sy + ey) / 2;
       d = `M${sx},${sy} C${sx},${my} ${ex},${my} ${ex},${ey}`;
       lx = (sx + ex) / 2;
@@ -178,6 +210,7 @@ function render(container, spec) {
       "marker-end": `url(#${cross ? "arr-cross" : "arr-local"})`,
     }, root);
     path.classList.add(cross ? "edge-cross" : "edge-local");
+    if (lit) path.setAttribute("opacity", 0.55);
     if (e.label) {
       const lines = wrap(e.label, cross ? 22 : 16);
       const g = el("g", {}, root);

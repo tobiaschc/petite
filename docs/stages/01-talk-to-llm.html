@@ -41,6 +41,14 @@
     <li>Print the response content. No tools, no loop — one request in, one answer out.</li>
   </ol>
 
+  <!-- generated:diff -->
+  <h2>The solution</h2>
+  <p class="diff-intro">Try the task above first. When you want to compare, this is exactly the whole program at this stage (<code>just diff 1 1</code> shows the same).</p>
+  <details class="solution"><summary><span class="show">Show the solution</span><span class="hide">Hide the solution</span> <span class="d-stat"><span class="d-plus">+47</span> <span class="d-minus">−0</span> lines</span></summary>
+  <details class="diff" open><summary><code>main.py</code><span class="d-stat"><span class="d-plus">+47</span> <span class="d-minus">−0</span></span></summary><pre class="diff-body"><span class="d-hunk">⋯ </span><span class="d-add">&quot;&quot;&quot;</span><span class="d-add">Stage 1: Talk to an LLM</span><span class="d-add"> </span><span class="d-add">The smallest possible version of an AI coding assistant: take a prompt</span><span class="d-add">from the command line, send it to an LLM, print the response.</span><span class="d-add"> </span><span class="d-add">No tools yet. No loop. Just a single request/response round trip, using</span><span class="d-add">the OpenAI SDK pointed at OpenRouter (any OpenAI-compatible API works the</span><span class="d-add">same way).</span><span class="d-add">&quot;&quot;&quot;</span><span class="d-add"> </span><span class="d-add">import argparse</span><span class="d-add">import os</span><span class="d-add">import sys</span><span class="d-add"> </span><span class="d-add">from openai import OpenAI</span><span class="d-add"> </span><span class="d-add">API_KEY = os.getenv(&quot;OPENROUTER_API_KEY&quot;)</span><span class="d-add">BASE_URL = os.getenv(&quot;OPENROUTER_BASE_URL&quot;, &quot;https://openrouter.ai/api/v1&quot;)</span><span class="d-add">MODEL = os.getenv(&quot;MODEL&quot;, &quot;anthropic/claude-haiku-4.5&quot;)</span><span class="d-add"> </span><span class="d-add"> </span><span class="d-add">def main():</span><span class="d-add">    parser = argparse.ArgumentParser(description=&quot;petite-harness: a tiny AI coding assistant&quot;)</span><span class="d-add">    parser.add_argument(&quot;-p&quot;, &quot;--prompt&quot;, required=True, help=&quot;the task to ask the model&quot;)</span><span class="d-add">    args = parser.parse_args()</span><span class="d-add"> </span><span class="d-add">    if not API_KEY:</span><span class="d-add">        raise RuntimeError(&quot;OPENROUTER_API_KEY is not set&quot;)</span><span class="d-add"> </span><span class="d-add">    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)</span><span class="d-add"> </span><span class="d-add">    print(f&quot;[main] sending prompt to {MODEL}&quot;, file=sys.stderr)</span><span class="d-add"> </span><span class="d-add">    response = client.chat.completions.create(</span><span class="d-add">        model=MODEL,</span><span class="d-add">        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: args.prompt}],</span><span class="d-add">    )</span><span class="d-add"> </span><span class="d-add">    if not response.choices:</span><span class="d-add">        raise RuntimeError(&quot;no choices in response&quot;)</span><span class="d-add"> </span><span class="d-add">    print(response.choices[0].message.content)</span><span class="d-add"> </span><span class="d-add"> </span><span class="d-add">if __name__ == &quot;__main__&quot;:</span><span class="d-add">    main()</span></pre></details>
+  </details>
+  <!-- /generated:diff -->
+
   <h2>Try it</h2>
   <p>Run this stage's own code (after <code>just setup</code>), from the repo root:</p>
   <div class="replicate-steps">
@@ -55,6 +63,15 @@ just run "Please compute 2 + 3. Respond with only a number."</code></pre>
     <code>just clean-stages</code> removes the worktrees.
   </p>
 
+  <!-- generated:map -->
+  <h2>Where this fits</h2>
+  <p class="map-intro">The whole agent; this stage builds the highlighted part. Click any part to jump to its stage.</p>
+  <div class="diagram map"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 5, "rowGap": 118, "llm": [{"id": "M", "label": "the model", "span": [0, 3]}, {"id": "M2", "label": "a subagent's model", "span": [4, 4]}], "local": [{"id": "P", "label": "your prompt", "col": 0, "row": 0, "badge": "1", "href": "01-talk-to-llm.html"}, {"id": "Slash", "label": "expand /slash commands", "col": 1, "row": 0, "badge": "9–11", "href": "09-slash-commands.html"}, {"id": "Msgs", "label": "messages + system prompt", "col": 2, "row": 0, "badge": "4", "href": "04-agent-loop.html"}, {"id": "Val", "label": "validate the tool call", "col": 3, "row": 0, "badge": "7", "href": "07-pydantic-tools.html"}, {"id": "Fork", "label": "fresh conversation", "col": 4, "row": 0, "badge": "14", "href": "14-subagents.html"}, {"id": "Disc", "label": "discover skills", "col": 1, "row": 1, "badge": "8", "href": "08-skills-level1.html"}, {"id": "Scripts", "label": "bundled scripts (via Bash)", "col": 2, "row": 1, "badge": "12", "href": "12-bundled-scripts.html"}, {"id": "Tools", "label": "Read · Write · Bash · Skill", "col": 3, "row": 1, "badge": "2–6 · 13", "href": "02-read-tool.html"}], "edges": [["P", "Slash"], ["Slash", "Msgs"], ["Disc", "Msgs", "skill list"], ["Msgs", "M", "request"], ["M", "Val", "text or a tool call"], ["Val", "Tools", "run it"], ["Tools", "Msgs", "result"], ["Tools", "Scripts"], ["Tools", "Fork", "Skill (fork)"], ["Fork", "M2", "request"], ["M2", "Fork", "final answer"], ["Fork", "Tools"]], "highlight": ["P"]}
+  </script>
+  <!-- /generated:map -->
+
   <h2>References</h2>
   <ul class="refs-list">
     <li><a href="https://openrouter.ai/docs/quickstart#using-the-openrouter-api">OpenRouter quickstart</a></li>
@@ -66,8 +83,12 @@ just run "Please compute 2 + 3. Respond with only a number."</code></pre>
     <a href="02-read-tool.html">2. Read tool →</a>
   </div>
 
-  <footer>
-    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  <footer class="site-footer">
+    <span><a href="../">petite</a> · a coding agent, one concept per commit</span>
+    <span class="footer-links">
+      <a href="https://github.com/tobiaschc/petite/blob/main/LICENSE">MIT license</a>
+      <a class="gh" href="https://github.com/tobiaschc/petite"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> tobiaschc/petite</a>
+    </span>
   </footer>
 </main>
 </body>

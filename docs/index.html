@@ -3,30 +3,69 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>petite</title>
-<meta name="description" content="A tiny AI coding agent built from scratch, one commit per concept. Follow along stage by stage, or clone it and replicate it yourself: LLM calls, tool calling, the agent loop, skills.">
+<title>petite — how coding agents work, built from scratch</title>
+<meta name="description" content="Understand how coding agents like Claude Code work inside by building one: a complete agent in 565 lines of Python, one concept per commit: tool calling, the agent loop, skills, subagents.">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/mark.png" type="image/png">
 </head>
 <body>
 
-<img class="banner" src="assets/banner.svg" alt="petite">
+<nav class="topbar">
+  <a class="brand" href="./"><img src="assets/mark.png" alt="" width="20" height="25"> petite</a>
+  <span class="topbar-links">
+    <a href="#why">Why</a>
+    <a href="#stages">Stages</a>
+    <a href="#map">How it works</a>
+    <a class="gh" href="https://github.com/tobiaschc/petite" aria-label="petite on GitHub" title="petite on GitHub"><svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  </span>
+</nav>
 
 <main>
-  <h1>petite</h1>
-  <p class="tagline">
-    A tiny AI coding agent, built from scratch, one commit per concept.
-    Each stage below is a real, working commit: LLM calls, tool calling, the agent loop, skills —
-    read it, run it, or replicate it yourself.
-  </p>
+  <img class="banner" src="assets/banner.svg" alt="petite: a tiny AI coding agent, built from scratch, one commit per concept">
 
-  <div class="intro-section">
-    <div class="cta-row">
-      <a class="primary" href="https://github.com/tobiaschc/petite">View on GitHub</a>
-      <a class="secondary" href="stages/01-talk-to-llm.html">Start at stage 1 →</a>
-    </div>
+  <h1 class="hero">What's inside a coding agent?<br><span class="mark">Build one and see.</span></h1>
+  <p class="hero-stat">Claude Code, Cursor and Codex all run the same small loop: ask the model, run the tools
+    it asks for, send back the results. <strong><em>petite</em></strong> builds it from scratch in <span class="loc">565</span> lines of Python,
+    one concept per commit.</p>
+  <div class="cta-row">
+    <a class="primary" href="stages/01-talk-to-llm.html">Start at stage 1 →</a>
+    <a class="secondary" href="#map">How it works ↓</a>
+    <a class="secondary gh-btn" href="https://github.com/tobiaschc/petite"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHub</a>
   </div>
+  <p class="t-intro">Here it is answering a question about its own code:</p>
+  <div class="terminal" aria-label="A recorded petite session">
+    <div class="t-bar"><span></span><span></span><span></span></div>
+    <pre><span class="t-first"><span class="t-prompt">$ </span><span class="t-cmd">just run "How many Python files are in this project, and which one is the longest?"</span></span><span class="t-line t-log" data-wait="250">[agent] advertising 7 skill(s)</span><span class="t-line t-log t-model" data-wait="900">[agent] turn 1: calling model with 2 message(s)</span><span class="t-line t-log t-tool" data-wait="250">[agent] executing Bash({&#x27;command&#x27;: &#x27;find . -type f -name &quot;*.py&quot; | head -20&#x27;})</span><span class="t-line t-log t-model" data-wait="900">[agent] turn 2: calling model with 4 message(s)</span><span class="t-line t-log t-tool" data-wait="250">[agent] executing Bash({&#x27;command&#x27;: &#x27;find . -type f -name &quot;*.py&quot; --not -path &quot;./.venv/*&quot; | wc -l&#x27;})</span><span class="t-line t-log t-model" data-wait="900">[agent] turn 3: calling model with 6 message(s)</span><span class="t-line t-log t-tool" data-wait="250">[agent] executing Bash({&#x27;command&#x27;: &#x27;find . -type f -name &quot;*.py&quot; -not -path &quot;./.venv/*&quot; | wc -l&#x27;})</span><span class="t-line t-log t-model" data-wait="900">[agent] turn 4: calling model with 8 message(s)</span><span class="t-line t-log t-tool" data-wait="250">[agent] executing Bash({&#x27;command&#x27;: &#x27;find . -type f -name &quot;*.py&quot; -not -path &quot;./.venv/*&quot; -exec wc -l {} + | sort -rn&#x27;})</span><span class="t-line t-log t-model" data-wait="900">[agent] turn 5: calling model with 10 message(s)</span><span class="t-line t-out" data-wait="700">**Results:**</span><span class="t-line t-out" data-wait="60"> </span><span class="t-line t-out" data-wait="60">There are **4 Python files** in this project (excluding the virtual environment):</span><span class="t-line t-out" data-wait="60"> </span><span class="t-line t-out" data-wait="60">1. **./skills.py** - 268 lines (longest)</span><span class="t-line t-out" data-wait="60">2. **./tools.py** - 156 lines</span><span class="t-line t-out" data-wait="60">3. **./agent.py** - 96 lines</span><span class="t-line t-out" data-wait="60">4. **./main.py** - 45 lines</span><span class="t-line t-out" data-wait="60"> </span><span class="t-line t-out" data-wait="60">The longest file is **`skills.py`** with 268 lines of code.</span></pre>
+  </div>
+  <p class="t-caption">A real run with Claude Haiku 4.5. Lines starting with <code>[agent]</code> are petite's own log: each <em>calling model</em> is one round trip to the LLM; each <em>executing</em> runs on your machine. Note turn 2: the model passes a bad <code>find</code> flag, sees the error, and fixes it.</p>
+
+
+    <h2 id="why">Who it's for</h2>
+  <div class="who">
+    <div><strong>You use coding agents</strong><p>See what happens between your prompt and the edit.</p></div>
+    <div><strong>You want to build one</strong><p>Every piece, in plain Python. No framework.</p></div>
+    <div><strong>You learn by doing</strong><p>A task, a hidden solution, a command that proves it.</p></div>
+  </div>
+
+  <h3 class="learn-title">What you'll understand by the end</h3>
+  <ul class="learn">
+    <li>Why the model never touches your files, and what does instead.</li>
+    <li>How tool calling works: JSON schemas go in, JSON tool calls come out.</li>
+    <li>The agent loop, and why it's most of the trick.</li>
+    <li>Skills: how agents load instructions only when a task needs them.</li>
+    <li>Subagents: why a fresh conversation keeps the main one clean.</li>
+  </ul>
+  <p class="prereq">You'll need some Python, a terminal, and an <a href="https://openrouter.ai/">OpenRouter</a> key; the whole tutorial costs a few cents of credit.</p>
+
+  <!-- generated:map -->
+  <h2 id="map">How it works</h2>
+  <p class="map-intro">One run of the agent: your prompt becomes messages, the model answers with text or a tool call, petite runs the tool on your machine and feeds the result back, until the model just answers. The badge on each part is the stage that builds it; click to jump there.</p>
+  <div class="diagram map"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 5, "rowGap": 118, "llm": [{"id": "M", "label": "the model", "span": [0, 3]}, {"id": "M2", "label": "a subagent's model", "span": [4, 4]}], "local": [{"id": "P", "label": "your prompt", "col": 0, "row": 0, "badge": "1", "href": "stages/01-talk-to-llm.html"}, {"id": "Slash", "label": "expand /slash commands", "col": 1, "row": 0, "badge": "9–11", "href": "stages/09-slash-commands.html"}, {"id": "Msgs", "label": "messages + system prompt", "col": 2, "row": 0, "badge": "4", "href": "stages/04-agent-loop.html"}, {"id": "Val", "label": "validate the tool call", "col": 3, "row": 0, "badge": "7", "href": "stages/07-pydantic-tools.html"}, {"id": "Fork", "label": "fresh conversation", "col": 4, "row": 0, "badge": "14", "href": "stages/14-subagents.html"}, {"id": "Disc", "label": "discover skills", "col": 1, "row": 1, "badge": "8", "href": "stages/08-skills-level1.html"}, {"id": "Scripts", "label": "bundled scripts (via Bash)", "col": 2, "row": 1, "badge": "12", "href": "stages/12-bundled-scripts.html"}, {"id": "Tools", "label": "Read · Write · Bash · Skill", "col": 3, "row": 1, "badge": "2–6 · 13", "href": "stages/02-read-tool.html"}], "edges": [["P", "Slash"], ["Slash", "Msgs"], ["Disc", "Msgs", "skill list"], ["Msgs", "M", "request"], ["M", "Val", "text or a tool call"], ["Val", "Tools", "run it"], ["Tools", "Msgs", "result"], ["Tools", "Scripts"], ["Tools", "Fork", "Skill (fork)"], ["Fork", "M2", "request"], ["M2", "Fork", "final answer"], ["Fork", "Tools"]]}
+  </script>
+  <!-- /generated:map -->
 
   <h2>Setup</h2>
   <div class="replicate-steps">
@@ -73,7 +112,7 @@ just clean-stages</code></pre>
     that's the whole point of this project.
   </p>
 
-  <h2>Base agent</h2>
+  <h2 id="stages">Base agent</h2>
   <ul class="stage-list">
     <li><span class="n">01</span><a href="stages/01-talk-to-llm.html">Talk to an LLM</a></li>
     <li><span class="n">02</span><a href="stages/02-read-tool.html">Read tool</a></li>
@@ -95,10 +134,16 @@ just clean-stages</code></pre>
     <li><span class="n">14</span><a href="stages/14-subagents.html">Subagents</a></li>
   </ul>
 
-  <footer>
-    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub — read the git history top to bottom for the full diffs behind every stage.
+  <footer class="site-footer">
+    <span><a href="./">petite</a> · a coding agent, one concept per commit</span>
+    <span class="footer-links">
+      <a href="https://github.com/tobiaschc/petite/blob/main/LICENSE">MIT license</a>
+      <a class="gh" href="https://github.com/tobiaschc/petite"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> tobiaschc/petite</a>
+    </span>
   </footer>
 </main>
+<script type="module" src="diagram.js"></script>
+<script type="module" src="terminal.js"></script>
 
 </body>
 </html>

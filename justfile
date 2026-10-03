@@ -80,3 +80,7 @@ _resolve-tag name:
         exit 1
     fi
     echo "$match"
+
+# Regenerate the site's code-derived parts: per-stage diffs, the system map, the line count.
+docs:
+    python3 scripts/build_docs.py

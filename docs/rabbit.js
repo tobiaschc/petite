@@ -1,4 +1,4 @@
-// petite's rabbit: walks along a page's Mermaid diagram, carrying in its paw
+// petite's rabbit: walks along a page's diagram, carrying in its paw
 // what actually flows along each edge (the prompt, a tool call, the answer...).
 //
 // A page opts in with a tour, one step per edge, in order:
@@ -211,7 +211,7 @@ async function run(container, tour) {
 
 function start() {
   const tourEl = document.querySelector("script.rabbit-tour");
-  const container = document.querySelector(".diagram, .mermaid");
+  const container = document.querySelector(".diagram:not(.map), .mermaid");
   if (!tourEl || !container) return;
   const tour = JSON.parse(tourEl.textContent);
   // Mermaid renders asynchronously: wait until the diagram's edges exist.

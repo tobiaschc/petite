@@ -41,6 +41,14 @@
     <li>Dispatch on the tool call's name — whichever of Read/Write the model asks for.</li>
   </ol>
 
+  <!-- generated:diff -->
+  <h2>The solution</h2>
+  <p class="diff-intro">Try the task above first. When you want to compare, this is exactly what changed since stage 2 (<code>just diff 2 3</code> shows the same).</p>
+  <details class="solution"><summary><span class="show">Show the solution</span><span class="hide">Hide the solution</span> <span class="d-stat"><span class="d-plus">+39</span> <span class="d-minus">−9</span> lines</span></summary>
+  <details class="diff" open><summary><code>main.py</code><span class="d-stat"><span class="d-plus">+39</span> <span class="d-minus">−9</span></span></summary><pre class="diff-body"><span class="d-hunk">⋯ </span><span class="d-ctx">&quot;&quot;&quot;</span><span class="d-del">Stage 2: the Read tool</span><span class="d-add">Stage 3: the Write tool</span><span class="d-ctx"> </span><span class="d-del">The model can&#x27;t touch your filesystem on its own — it can only ask. This</span><span class="d-del">stage adds one tool, Read, and a single round trip: send the prompt and</span><span class="d-del">the tool&#x27;s spec, check if the model asked to call it, execute it if so,</span><span class="d-del">print the result (no loop yet, that&#x27;s the next stage).</span><span class="d-add">Same pattern as Read: advertise the spec, dispatch by name when the model</span><span class="d-add">calls it. Still one round trip, still no loop — just a second tool.</span><span class="d-ctx">&quot;&quot;&quot;</span><span class="d-ctx"> </span><span class="d-ctx">import argparse</span><span class="d-hunk">⋯ TOOLS = [</span><span class="d-ctx">                },</span><span class="d-ctx">            },</span><span class="d-ctx">        },</span><span class="d-del">    }</span><span class="d-add">    },</span><span class="d-add">    {</span><span class="d-add">        &quot;type&quot;: &quot;function&quot;,</span><span class="d-add">        &quot;function&quot;: {</span><span class="d-add">            &quot;name&quot;: &quot;Write&quot;,</span><span class="d-add">            &quot;description&quot;: &quot;Write content to a file, creating it if needed or overwriting it if it exists&quot;,</span><span class="d-add">            &quot;parameters&quot;: {</span><span class="d-add">                &quot;type&quot;: &quot;object&quot;,</span><span class="d-add">                &quot;required&quot;: [&quot;file_path&quot;, &quot;content&quot;],</span><span class="d-add">                &quot;properties&quot;: {</span><span class="d-add">                    &quot;file_path&quot;: {</span><span class="d-add">                        &quot;type&quot;: &quot;string&quot;,</span><span class="d-add">                        &quot;description&quot;: &quot;The path of the file to write to&quot;,</span><span class="d-add">                    },</span><span class="d-add">                    &quot;content&quot;: {</span><span class="d-add">                        &quot;type&quot;: &quot;string&quot;,</span><span class="d-add">                        &quot;description&quot;: &quot;The content to write to the file&quot;,</span><span class="d-add">                    },</span><span class="d-add">                },</span><span class="d-add">            },</span><span class="d-add">        },</span><span class="d-add">    },</span><span class="d-ctx">]</span><span class="d-ctx"> </span><span class="d-ctx"> </span><span class="d-hunk">⋯ def Read(file_path):</span><span class="d-ctx">        return f.read()</span><span class="d-ctx"> </span><span class="d-ctx"> </span><span class="d-add">def Write(file_path, content):</span><span class="d-add">    with open(file_path, &quot;w&quot;) as f:</span><span class="d-add">        f.write(content)</span><span class="d-add">    return f&quot;Wrote to {file_path}&quot;</span><span class="d-add"> </span><span class="d-add"> </span><span class="d-ctx">def main():</span><span class="d-ctx">    parser = argparse.ArgumentParser(description=&quot;petite-harness: a tiny AI coding assistant&quot;)</span><span class="d-ctx">    parser.add_argument(&quot;-p&quot;, &quot;--prompt&quot;, required=True, help=&quot;the task to ask the model&quot;)</span><span class="d-hunk">⋯ def main():</span><span class="d-ctx">        call = message.tool_calls[0]</span><span class="d-ctx">        print(f&quot;[main] model requested tool call: {call.function.name}&quot;, file=sys.stderr)</span><span class="d-ctx"> </span><span class="d-del">        if call.function.name != &quot;Read&quot;:</span><span class="d-add">        arguments = json.loads(call.function.arguments)</span><span class="d-add"> </span><span class="d-add">        if call.function.name == &quot;Read&quot;:</span><span class="d-add">            result = Read(arguments[&quot;file_path&quot;])</span><span class="d-add">        elif call.function.name == &quot;Write&quot;:</span><span class="d-add">            result = Write(arguments[&quot;file_path&quot;], arguments[&quot;content&quot;])</span><span class="d-add">        else:</span><span class="d-ctx">            raise RuntimeError(f&quot;unknown tool: {call.function.name}&quot;)</span><span class="d-ctx"> </span><span class="d-del">        arguments = json.loads(call.function.arguments)</span><span class="d-del">        print(Read(arguments[&quot;file_path&quot;]))</span><span class="d-add">        print(result)</span><span class="d-ctx">        return</span><span class="d-ctx"> </span><span class="d-ctx">    print(message.content)</span></pre></details>
+  </details>
+  <!-- /generated:diff -->
+
   <h2>Try it</h2>
   <p>Run this stage's own code:</p>
   <div class="replicate-steps">
@@ -57,6 +65,15 @@ cat hello.txt</code></pre>
     <code>just clean-stages</code> removes the worktrees.
   </p>
 
+  <!-- generated:map -->
+  <h2>Where this fits</h2>
+  <p class="map-intro">The whole agent; this stage builds the highlighted part. Click any part to jump to its stage.</p>
+  <div class="diagram map"></div>
+  <script type="application/json" class="diagram-spec">
+{"cols": 5, "rowGap": 118, "llm": [{"id": "M", "label": "the model", "span": [0, 3]}, {"id": "M2", "label": "a subagent's model", "span": [4, 4]}], "local": [{"id": "P", "label": "your prompt", "col": 0, "row": 0, "badge": "1", "href": "01-talk-to-llm.html"}, {"id": "Slash", "label": "expand /slash commands", "col": 1, "row": 0, "badge": "9–11", "href": "09-slash-commands.html"}, {"id": "Msgs", "label": "messages + system prompt", "col": 2, "row": 0, "badge": "4", "href": "04-agent-loop.html"}, {"id": "Val", "label": "validate the tool call", "col": 3, "row": 0, "badge": "7", "href": "07-pydantic-tools.html"}, {"id": "Fork", "label": "fresh conversation", "col": 4, "row": 0, "badge": "14", "href": "14-subagents.html"}, {"id": "Disc", "label": "discover skills", "col": 1, "row": 1, "badge": "8", "href": "08-skills-level1.html"}, {"id": "Scripts", "label": "bundled scripts (via Bash)", "col": 2, "row": 1, "badge": "12", "href": "12-bundled-scripts.html"}, {"id": "Tools", "label": "Read · Write · Bash · Skill", "col": 3, "row": 1, "badge": "2–6 · 13", "href": "02-read-tool.html"}], "edges": [["P", "Slash"], ["Slash", "Msgs"], ["Disc", "Msgs", "skill list"], ["Msgs", "M", "request"], ["M", "Val", "text or a tool call"], ["Val", "Tools", "run it"], ["Tools", "Msgs", "result"], ["Tools", "Scripts"], ["Tools", "Fork", "Skill (fork)"], ["Fork", "M2", "request"], ["M2", "Fork", "final answer"], ["Fork", "Tools"]], "highlight": ["Tools"]}
+  </script>
+  <!-- /generated:map -->
+
   <h2>References</h2>
   <ul class="refs-list">
     <li><a href="https://code.claude.com/docs/en/tools-reference">Claude Code tools reference</a></li>
@@ -68,8 +85,12 @@ cat hello.txt</code></pre>
     <a href="04-agent-loop.html">4. Agent loop →</a>
   </div>
 
-  <footer>
-    <a href="https://github.com/tobiaschc/petite">tobiaschc/petite</a> on GitHub.
+  <footer class="site-footer">
+    <span><a href="../">petite</a> · a coding agent, one concept per commit</span>
+    <span class="footer-links">
+      <a href="https://github.com/tobiaschc/petite/blob/main/LICENSE">MIT license</a>
+      <a class="gh" href="https://github.com/tobiaschc/petite"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> tobiaschc/petite</a>
+    </span>
   </footer>
 </main>
 </body>
