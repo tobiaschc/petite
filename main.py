@@ -1,8 +1,8 @@
 """
-Stage 6: extract a tools module
+Stage 8: skills, level 1 (advertise)
 
-main.py is now just the agent loop — tool specs and implementations live
-in tools.py (see that file for why this split happened).
+main.py now prepends a system message listing available skills (name +
+description only) before the loop starts — see skills.py for the why.
 """
 
 import argparse
@@ -12,6 +12,7 @@ import sys
 
 from openai import OpenAI
 
+from skills import build_skills_system_prompt, discover_skills
 from tools import TOOLS, execute_tool
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -31,6 +32,12 @@ def main():
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
     messages = [{"role": "user", "content": args.prompt}]
+
+    skills = discover_skills()
+    system_prompt = build_skills_system_prompt(skills)
+    if system_prompt:
+        print(f"[agent] advertising {len(skills)} skill(s)", file=sys.stderr)
+        messages.insert(0, {"role": "system", "content": system_prompt})
 
     for turn in range(1, MAX_TURNS + 1):
         print(f"[agent] turn {turn}: calling model with {len(messages)} message(s)", file=sys.stderr)
