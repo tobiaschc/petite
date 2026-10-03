@@ -1,15 +1,22 @@
 """
-Stage 9: slash commands, level 2 (invoke)
+Stage 10: skill arguments ($ARGUMENTS, $0, $1, ...)
 
-A prompt starting with "/" invokes a skill by name: the first word after
-the slash resolves to .petite/skills/<name>/SKILL.md, and that skill's
-body (everything after the closing "---") replaces the raw prompt as the
-user message. Only the invoked skill's body is ever loaded — every other
-skill stays at level 1 (name + description in the system prompt), so the
-model never sees two conflicting sets of instructions at once.
+A slash command can pass arguments after the skill name:
+"/feed rabbit carrots" invokes "feed" with args ["rabbit", "carrots"].
+The body can reference them with placeholders, substituted before the
+body is sent to the model:
+
+  $ARGUMENTS         everything after the skill name, joined by spaces
+  $ARGUMENTS[0], [1] a single argument, by position
+  $0, $1, ...        shorthand for the same thing
+
+Order matters when substituting: $ARGUMENTS[0] must be handled before the
+bare $ARGUMENTS, or a naive string replace would mangle it into
+"rabbit carrots[0]".
 """
 
 import os
+import re
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -119,8 +126,9 @@ def load_skill_body(name, skills_dir=SKILLS_DIR):
 
 
 def resolve_slash_command(prompt, skills_dir=SKILLS_DIR):
-    """If prompt starts with '/', resolve the first word as a skill name
-    and return that skill's body to use as the user message content.
+    """If prompt starts with '/', resolve the first word as a skill name,
+    substitute any argument placeholders in its body, and return that as
+    the user message content.
 
     Returns None if the prompt isn't a slash command or the named skill
     can't be found, so the caller falls back to the raw prompt.
@@ -132,5 +140,30 @@ def resolve_slash_command(prompt, skills_dir=SKILLS_DIR):
     if not rest:
         return None
 
-    skill_name = rest.split()[0]
-    return load_skill_body(skill_name, skills_dir)
+    parts = rest.split()
+    skill_name, args = parts[0], parts[1:]
+
+    body = load_skill_body(skill_name, skills_dir)
+    if body is None:
+        return None
+
+    return substitute_arguments(body, args)
+
+
+def substitute_arguments(body, args):
+    """Replace $ARGUMENTS, $ARGUMENTS[n] and $n placeholders in a skill
+    body with the given positional arguments.
+
+    Missing indices substitute to an empty string rather than raising.
+    """
+
+    def arg_at(index):
+        return args[index] if 0 <= index < len(args) else ""
+
+    # $ARGUMENTS[n] first — a bare $ARGUMENTS replace would otherwise
+    # mangle "$ARGUMENTS[0]" into "<joined args>[0]".
+    body = re.sub(r"\$ARGUMENTS\[(\d+)\]", lambda m: arg_at(int(m.group(1))), body)
+    body = body.replace("$ARGUMENTS", " ".join(args))
+    body = re.sub(r"\$(\d+)", lambda m: arg_at(int(m.group(1))), body)
+
+    return body
