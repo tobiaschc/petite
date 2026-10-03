@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="petite-harness" width="100%">
+</p>
+
 # petite-harness
 
 A tiny AI coding agent, built from scratch, one commit per concept.
@@ -37,3 +41,4 @@ Most "build your own agent" content either hides the hard parts behind a framewo
 ## References
 
 - [Claude Code tools reference](https://code.claude.com/docs/en/tools-reference) — the real tool set (`Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`...) this project is inspired by, scaled down to teachable size.
+- [OpenRouter quickstart](https://openrouter.ai/docs/quickstart#using-the-openrouter-api) — the OpenAI-compatible API this project talks to by default.
