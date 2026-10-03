@@ -1,22 +1,17 @@
 """
-Stage 7: Tool classes with Pydantic validation
+Stage 13: the Skill tool (model-invoked skills)
 
-Two problems with the previous stage's TOOLS list:
-
-1. The JSON Schema for each tool's parameters was hand-written and could
-   drift from what execute() actually accepts.
-2. execute_tool did `fn(**arguments)` on whatever JSON the model sent —
-   a missing or mistyped argument surfaced as a raw Python TypeError deep
-   inside the tool, not a clear validation error.
-
-A Pydantic model per tool fixes both: the schema comes from
-`model_json_schema()` (one source of truth), and arguments are validated
-and coerced through that model *before* execute() ever runs.
+Every tool so far was self-contained. This one depends on skills.py: it
+looks up a skill the model names, substitutes its arguments, and returns
+the body as the tool result — the same mechanism slash commands use,
+just triggered by a tool call instead of a "/name" prefix.
 """
 
 import subprocess
 
 from pydantic import BaseModel, Field, ValidationError
+
+from skills import resolve_skill_invocation
 
 
 class ReadArgs(BaseModel):
@@ -30,6 +25,11 @@ class WriteArgs(BaseModel):
 
 class BashArgs(BaseModel):
     command: str = Field(description="The command to execute")
+
+
+class SkillArgs(BaseModel):
+    name: str = Field(description="The name of the skill to use")
+    args: str = Field(default="", description="Optional arguments for the skill")
 
 
 class Tool:
@@ -60,19 +60,27 @@ class ReadTool(Tool):
     args_model = ReadArgs
 
     def execute(self, file_path):
-        with open(file_path) as f:
-            return f.read()
+        try:
+            with open(file_path) as f:
+                return f.read()
+        except Exception as e:
+            return f"Error reading {file_path}: {e}"
 
 
 class WriteTool(Tool):
     name = "Write"
-    description = "Write content to a file, creating it if needed or overwriting it if it exists"
+    description = (
+        "Write content to a file, creating it if needed or overwriting it if it exists"
+    )
     args_model = WriteArgs
 
     def execute(self, file_path, content):
-        with open(file_path, "w") as f:
-            f.write(content)
-        return f"Wrote to {file_path}"
+        try:
+            with open(file_path, "w") as f:
+                f.write(content)
+            return f"Wrote to {file_path}"
+        except Exception as e:
+            return f"Error writing {file_path}: {e}"
 
 
 class BashTool(Tool):
@@ -88,7 +96,22 @@ class BashTool(Tool):
         return output
 
 
-ALL_TOOLS = [ReadTool(), WriteTool(), BashTool()]
+class SkillTool(Tool):
+    name = "Skill"
+    description = "Load a skill's instructions into the conversation"
+    args_model = SkillArgs
+
+    def execute(self, name, args=""):
+        try:
+            result = resolve_skill_invocation(name, args)
+        except ValueError as e:
+            return str(e)
+        if result is None:
+            return f"Unknown skill: {name}"
+        return result
+
+
+ALL_TOOLS = [ReadTool(), WriteTool(), BashTool(), SkillTool()]
 
 TOOLS = [tool.spec() for tool in ALL_TOOLS]
 
@@ -108,4 +131,5 @@ def execute_tool(name, arguments):
         validated = tool.args_model(**arguments)
     except ValidationError as e:
         return f"Invalid arguments for {name}: {e}"
+
     return tool.execute(**validated.model_dump())

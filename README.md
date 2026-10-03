@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="petite-harness" width="100%">
+  <img src="assets/banner.svg" alt="petite" width="100%">
 </p>
 
-# petite-harness
+# petite
 
 A tiny AI coding agent, built from scratch, one commit per concept.
 
@@ -22,8 +22,9 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 10. Skill arguments — `$ARGUMENTS`, `$ARGUMENTS[n]`, `$n` placeholders substituted in the body
 - [x] 11. Stack multiple skills — `/rabbit /fox 4127` expands both, sharing trailing args
 - [x] 12. Bundled scripts (level 3) — `scripts/` loaded only when the body points at them, via a folder-path header
-- [ ] 13. Skill classes — same idea as stage 7, applied to skills
-- [ ] 14. Tests — fake LLM client, no real API calls
+- [x] 13. Model-invoked skills — the `Skill` tool, plus `disable-model-invocation` / `user-invocable` controls
+- [ ] 14. Skill classes — same idea as stage 7, applied to skills
+- [ ] 15. Tests — fake LLM client, no real API calls
 
 ## Running it
 
@@ -49,3 +50,4 @@ Most "build your own agent" content either hides the hard parts behind a framewo
 - [Claude Code: pass arguments to skills](https://code.claude.com/docs/en/skills#pass-arguments-to-skills) — the `$ARGUMENTS` / `$0` placeholders and multi-skill stacking convention these stages implement.
 - [Agent Skills: optional directories](https://agentskills.io/specification#optional-directories) — the `scripts/` / `references/` / `assets/` convention for level-3 disclosure.
 - [Agent Skills: file references](https://agentskills.io/specification#file-references) — relative-path convention for files a skill body points at.
+- [Claude Code: control who invokes a skill](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill) — the `disable-model-invocation` / `user-invocable` frontmatter fields this stage implements.

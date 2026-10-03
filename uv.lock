@@ -216,7 +216,7 @@ wheels = [
 ]
 
 [[package]]
-name = "petite-harness"
+name = "petite"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

@@ -1,5 +1,5 @@
 [project]
-name = "petite-harness"
+name = "petite"
 version = "0.1.0"
 description = "A tiny, from-scratch AI coding agent built one concept at a time: LLM calls, tool calling, the agent loop, and skills."
 requires-python = ">=3.11"

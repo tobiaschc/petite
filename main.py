@@ -22,8 +22,10 @@ MAX_TURNS = 20
 
 
 def main():
-    parser = argparse.ArgumentParser(description="petite-harness: a tiny AI coding assistant")
-    parser.add_argument("-p", "--prompt", required=True, help="the task to ask the model")
+    parser = argparse.ArgumentParser(description="petite: a tiny AI coding assistant")
+    parser.add_argument(
+        "-p", "--prompt", required=True, help="the task to ask the model"
+    )
     args = parser.parse_args()
 
     if not API_KEY:
@@ -33,7 +35,9 @@ def main():
 
     skill_bodies = resolve_slash_command(args.prompt)
     if skill_bodies is not None:
-        print(f"[agent] resolved {len(skill_bodies)} skill invocation(s)", file=sys.stderr)
+        print(
+            f"[agent] resolved {len(skill_bodies)} skill invocation(s)", file=sys.stderr
+        )
         messages = [{"role": "user", "content": body} for body in skill_bodies]
     else:
         messages = [{"role": "user", "content": args.prompt}]
@@ -45,7 +49,10 @@ def main():
         messages.insert(0, {"role": "system", "content": system_prompt})
 
     for turn in range(1, MAX_TURNS + 1):
-        print(f"[agent] turn {turn}: calling model with {len(messages)} message(s)", file=sys.stderr)
+        print(
+            f"[agent] turn {turn}: calling model with {len(messages)} message(s)",
+            file=sys.stderr,
+        )
 
         response = client.chat.completions.create(
             model=MODEL,
@@ -65,11 +72,16 @@ def main():
             print(message.content)
             return
 
-        print(f"[agent] turn {turn}: {len(tool_calls)} tool call(s) requested", file=sys.stderr)
+        print(
+            f"[agent] turn {turn}: {len(tool_calls)} tool call(s) requested",
+            file=sys.stderr,
+        )
 
         for call in tool_calls:
             arguments = json.loads(call.function.arguments)
-            print(f"[agent] executing {call.function.name}({arguments})", file=sys.stderr)
+            print(
+                f"[agent] executing {call.function.name}({arguments})", file=sys.stderr
+            )
 
             result = execute_tool(call.function.name, arguments)
 
