@@ -1,18 +1,16 @@
 """
-Stage 10: skill arguments ($ARGUMENTS, $0, $1, ...)
+Stage 11: stacking multiple skills in one prompt
 
-A slash command can pass arguments after the skill name:
-"/feed rabbit carrots" invokes "feed" with args ["rabbit", "carrots"].
-The body can reference them with placeholders, substituted before the
-body is sent to the model:
+A prompt can invoke more than one skill at once: "/rabbit /fox 4127"
+loads both bodies, and the trailing "4127" reaches each of them as
+$ARGUMENTS. Expansion runs left to right from the start of the prompt —
+every token that names a real skill gets expanded; the first token that
+doesn't name a skill ends the run, and it (plus everything after it)
+becomes the shared argument text for every skill that WAS expanded.
 
-  $ARGUMENTS         everything after the skill name, joined by spaces
-  $ARGUMENTS[0], [1] a single argument, by position
-  $0, $1, ...        shorthand for the same thing
-
-Order matters when substituting: $ARGUMENTS[0] must be handled before the
-bare $ARGUMENTS, or a naive string replace would mangle it into
-"rabbit carrots[0]".
+  "/rabbit /fox 4127"        -> expands [rabbit, fox], args = "4127"
+  "/rabbit 4127 /fox"        -> expands [rabbit],       args = "4127 /fox"
+  "/rabbit /owl 4127" (no owl skill) -> expands [rabbit], args = "/owl 4127"
 """
 
 import os
@@ -126,28 +124,33 @@ def load_skill_body(name, skills_dir=SKILLS_DIR):
 
 
 def resolve_slash_command(prompt, skills_dir=SKILLS_DIR):
-    """If prompt starts with '/', resolve the first word as a skill name,
-    substitute any argument placeholders in its body, and return that as
-    the user message content.
+    """If prompt starts with one or more "/skill-name" tokens, expand them
+    all and return a list of substituted bodies, one per skill — in the
+    order they appeared, each with the same trailing argument text.
 
-    Returns None if the prompt isn't a slash command or the named skill
-    can't be found, so the caller falls back to the raw prompt.
+    Expansion stops at the first token that isn't a real skill name; that
+    token and everything after it becomes the shared $ARGUMENTS text.
+
+    Returns None if the prompt doesn't start with a recognized skill
+    invocation at all, so the caller falls back to the raw prompt.
     """
-    if not prompt.startswith("/"):
+    tokens = prompt.split()
+
+    expanded_names = []
+    i = 0
+    while i < len(tokens) and tokens[i].startswith("/"):
+        candidate = tokens[i][1:]
+        if load_skill_body(candidate, skills_dir) is None:
+            break
+        expanded_names.append(candidate)
+        i += 1
+
+    if not expanded_names:
         return None
 
-    rest = prompt[1:].strip()
-    if not rest:
-        return None
+    args = tokens[i:]
 
-    parts = rest.split()
-    skill_name, args = parts[0], parts[1:]
-
-    body = load_skill_body(skill_name, skills_dir)
-    if body is None:
-        return None
-
-    return substitute_arguments(body, args)
+    return [substitute_arguments(load_skill_body(name, skills_dir), args) for name in expanded_names]
 
 
 def substitute_arguments(body, args):

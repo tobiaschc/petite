@@ -1,8 +1,8 @@
 """
-Stage 9: slash commands, level 2 (invoke)
+Stage 11: stacking multiple skills in one prompt
 
-A "/name" prompt loads that skill's SKILL.md body instead of the raw
-prompt — see skills.py for how resolution and progressive disclosure work.
+"/fox /walk 4127" now expands into one user message per skill — see
+skills.py for how the expansion and argument-sharing rules work.
 """
 
 import argparse
@@ -31,12 +31,12 @@ def main():
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-    messages = [{"role": "user", "content": args.prompt}]
-
-    skill_body = resolve_slash_command(args.prompt)
-    if skill_body is not None:
-        print(f"[agent] resolved slash command to skill body ({len(skill_body)} chars)", file=sys.stderr)
-        messages[0]["content"] = skill_body
+    skill_bodies = resolve_slash_command(args.prompt)
+    if skill_bodies is not None:
+        print(f"[agent] resolved {len(skill_bodies)} skill invocation(s)", file=sys.stderr)
+        messages = [{"role": "user", "content": body} for body in skill_bodies]
+    else:
+        messages = [{"role": "user", "content": args.prompt}]
 
     skills = discover_skills()
     system_prompt = build_skills_system_prompt(skills)

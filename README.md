@@ -20,8 +20,9 @@ Read the git history top to bottom to see a Claude-Code-like assistant emerge fr
 - [x] 8. Skills (level 1) — `.petite/skills/*/SKILL.md`, validated with Pydantic, advertised as name + description
 - [x] 9. Slash commands (level 2) — load a skill's full body on demand
 - [x] 10. Skill arguments — `$ARGUMENTS`, `$ARGUMENTS[n]`, `$n` placeholders substituted in the body
-- [ ] 11. Skill classes — same idea as stage 7, applied to skills
-- [ ] 12. Tests — fake LLM client, no real API calls
+- [x] 11. Stack multiple skills — `/rabbit /fox 4127` expands both, sharing trailing args
+- [ ] 12. Skill classes — same idea as stage 7, applied to skills
+- [ ] 13. Tests — fake LLM client, no real API calls
 
 ## Running it
 
@@ -44,4 +45,4 @@ Most "build your own agent" content either hides the hard parts behind a framewo
 - [Claude Code tools reference](https://code.claude.com/docs/en/tools-reference) — the real tool set (`Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`...) this project is inspired by, scaled down to teachable size.
 - [OpenRouter quickstart](https://openrouter.ai/docs/quickstart#using-the-openrouter-api) — the OpenAI-compatible API this project talks to by default.
 - [Agent Skills specification](https://agentskills.io/specification) — the open, vendor-neutral SKILL.md format this project implements (own folder convention, standard file format).
-- [Claude Code: pass arguments to skills](https://code.claude.com/docs/en/skills#pass-arguments-to-skills) — the `$ARGUMENTS` / `$0` placeholder convention this stage implements.
+- [Claude Code: pass arguments to skills](https://code.claude.com/docs/en/skills#pass-arguments-to-skills) — the `$ARGUMENTS` / `$0` placeholders and multi-skill stacking convention these stages implement.
