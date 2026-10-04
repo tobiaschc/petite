@@ -1,0 +1,29 @@
+name: docs
+
+# The site's diffs, system map, line count and link previews are generated from the
+# code and the stage tags (scripts/build_docs.py, `just docs`). Fail if someone changed
+# the code or a stage without regenerating them.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # the diffs need every stage tag
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Regenerate the site's code-derived parts
+        run: python3 scripts/build_docs.py
+      - name: Fail if anything changed
+        run: |
+          if ! git diff --exit-code -- docs; then
+            echo "::error::docs/ is out of date with the code: run 'just docs' and commit the result."
+            exit 1
+          fi

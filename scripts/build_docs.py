@@ -16,6 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
+SITE = "https://tobiaschc.github.io/petite/"
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 CODE_PATHS = ["*.py", ".petite"]
 
@@ -130,6 +131,40 @@ def diff_block(n, tags):
     )
 
 
+# ---- link previews (Open Graph / Twitter cards), from each page's own title and description ----
+
+def clean_description(desc):
+    """Descriptions were cut at a fixed length, sometimes mid-word: end them on a word, with an ellipsis."""
+    desc = re.sub(r"<[^>]+>", "", desc).strip()  # some had inline <code> tags
+    if desc.endswith((".", "!", "?", "…")):
+        return desc
+    cut = desc[: desc.rfind(" ")].rstrip(" ,;:—-")
+    return cut if cut.endswith((".", "!", "?")) else cut + "…"
+
+
+def og_block(page, url):
+    title = html.unescape(re.search(r"<title>(.*?)</title>", page, re.S).group(1).strip())
+    desc = clean_description(html.unescape(re.search(r'<meta name="description" content="(.*?)">', page, re.S).group(1).strip()))
+    tags = [
+        ("property", "og:type", "website"),
+        ("property", "og:site_name", "petite"),
+        ("property", "og:title", title),
+        ("property", "og:description", desc),
+        ("property", "og:url", url),
+        ("property", "og:image", SITE + "assets/og.png"),
+        ("property", "og:image:width", "1200"),
+        ("property", "og:image:height", "630"),
+        ("name", "twitter:card", "summary_large_image"),
+    ]
+    return "\n".join(f'<meta {k}="{v}" content="{html.escape(c, quote=True)}">' for k, v, c in tags)
+
+
+def fix_description(page):
+    m = re.search(r'<meta name="description" content="(.*?)">', page, re.S)
+    fixed = html.escape(clean_description(html.unescape(m.group(1))), quote=False).replace('"', "&quot;")
+    return page.replace(m.group(0), f'<meta name="description" content="{fixed}">')
+
+
 # ---- page plumbing ----
 
 def put(page, name, content, before):
@@ -153,6 +188,8 @@ def main():
         fits = ('<h2>Where this fits</h2>\n  <p class="map-intro">The whole agent; this stage builds the highlighted part. '
                 'Click any part to jump to its stage.</p>\n  ' + map_block(HIGHLIGHT[n]))
         page = put(page, "map", fits, ["<h2>References</h2>", '<div class="stage-nav">'])
+        page = fix_description(page)
+        page = put(page, "og", og_block(page, f"{SITE}stages/{path.name}"), ['<link rel="stylesheet"'])
         path.write_text(page)
         print(f"stage {n:2}: diff + map")
 
@@ -166,6 +203,7 @@ def main():
                 "back, until the model just answers. The badge on each part is the stage that builds it; click to jump "
                 "there.</p>\n  " + map_block(href_prefix="stages/"))
     page = put(page, "map", overview, ["<h2>Setup</h2>"])
+    page = put(page, "og", og_block(page, SITE), ['<link rel="stylesheet"'])
     index.write_text(page)
     print(f"index: {loc} lines of Python, map")
 
